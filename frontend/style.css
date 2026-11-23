@@ -1,0 +1,172 @@
+:root {
+    /* Tu paleta de colores */
+    --color-1: #E3F6F5; /* Fondo claro */
+    --color-2: #A7E0DB; /* Detalles / Bordes */
+    --color-3: #5FB0C9; /* Botones principales / Acentos */
+    --color-4: #3E6D9C; /* Textos secundarios / Hover botones */
+    --color-5: #2A2F63; /* Encabezados / Textos principales */
+
+    /* Variables de diseño */
+    --bg-color: #f8fafc; /* Un blanco muy grisáceo para el fondo general */
+    --card-bg: #ffffff;  /* Blanco puro para el contenedor */
+    --text-main: var(--color-5);
+    --text-muted: var(--color-4);
+    --border-color: var(--color-2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: var(--card-bg);
+    width: 100%;
+    max-width: 800px;
+    border-radius: 16px; /* Bordes más redondeados como la imagen */
+    box-shadow: 0 10px 30px rgba(42, 47, 99, 0.08); /* Sombra con tinte del color 5 */
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+header {
+    background-color: var(--color-5); /* El azul más oscuro para el encabezado */
+    color: white;
+    padding: 2.5rem 2rem;
+    text-align: center;
+}
+
+header h1 { 
+    margin-bottom: 0.5rem; 
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+header p { 
+    color: var(--color-2); /* Turquesa claro para el subtítulo */
+    font-size: 1rem; 
+}
+
+/* Pestañas (Tabs) */
+.tabs {
+    display: flex;
+    background-color: var(--color-1); /* Fondo turquesa muy claro */
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1.2rem 1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.tab-btn:hover { 
+    background-color: var(--color-2); /* Turquesa medio al pasar el mouse */
+    color: var(--color-5);
+}
+
+.tab-btn.active {
+    color: var(--color-5);
+    border-bottom: 4px solid var(--color-3); /* Línea inferior azul medio */
+    background-color: var(--card-bg);
+}
+
+/* Contenido */
+main { padding: 2.5rem; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+h2 { 
+    margin-bottom: 1.5rem; 
+    color: var(--color-5); 
+    font-size: 1.4rem;
+}
+
+/* Formularios */
+.input-group {
+    margin-bottom: 1.2rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-5);
+}
+
+.input-group input, .input-group select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    color: var(--color-5);
+    background-color: #fafcfc;
+}
+
+.input-group input:focus, .input-group select:focus {
+    border-color: var(--color-3); /* Brillo azul al enfocar */
+    box-shadow: 0 0 0 3px rgba(95, 176, 201, 0.2); /* Anillo de enfoque */
+    background-color: white;
+}
+
+.btn-calcular {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--color-3); /* Azul medio para el botón */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 1rem;
+}
+
+.btn-calcular:hover { 
+    background-color: var(--color-4); /* Se oscurece al pasar el mouse */
+}
+
+/* Resultados */
+.resultado-box {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background-color: var(--color-1); /* Fondo turquesa muy claro */
+    border: 1px solid var(--color-2);
+    border-left: 5px solid var(--color-3); /* Detalle lateral */
+    border-radius: 8px;
+    font-size: 1.05rem;
+    color: var(--color-5);
+    line-height: 1.6;
+}
+
+.hidden { display: none; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
