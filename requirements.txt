@@ -1,4 +1,7 @@
+
 Flask
+Flask-Cors
+matplotlib
 numpy
 gunicorn
-matplotlib
+# ... el resto de tus librerías
