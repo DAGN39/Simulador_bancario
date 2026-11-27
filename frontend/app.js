@@ -240,6 +240,8 @@ function simularPrestamo() {
         if (porcentajeTexto !== '') leerNumero('pres-porcentaje', '% a financiar', { max: 100 });
         const tasa = leerNumero('pres-tasa', 'Tasa de interés', { max: 1000 });
         const plazo = leerNumero('pres-plazo', 'Número de cuotas', { entero: true, max: 600 });
+        const seguroTexto = $('pres-seguro').value.trim();
+        if (seguroTexto !== '') leerNumero('pres-seguro', 'Seguro (% por periodo)', { max: 10, permitirCero: true });
         const gracia = leerNumero('pres-gracia', 'Periodos de gracia', { entero: true, permitirCero: true });
         if (gracia >= plazo) throw new Error('Los periodos de gracia deben ser menos que el número de cuotas.');
 
@@ -249,7 +251,7 @@ function simularPrestamo() {
             tipo_pago: $('pres-tipo-pago').value,
             gracia, tipo_gracia: $('pres-tipo-gracia').value,
             abonos: leerAbonos(), modo_abono: $('pres-modo-abono').value,
-            sistema_cuota: $('pres-sistema').value,
+            sistema_cuota: $('pres-sistema').value, seguro: seguroTexto,
             edad: $('pres-edad').value.trim(), plazo_minimo: $('pres-plazo-minimo').value.trim()
         });
 
@@ -271,6 +273,7 @@ function simularPrestamo() {
             + (data.edad_final !== undefined ? ` · Edad del titular: ${data.edad} años (al terminar: ${fmt(data.edad_final, 1)} años)` : '')
             + `</small>`;
         resumen += `<br><small>Número de pagos: ${data.num_pagos} · Total pagado: ${dinero(data.total_pagado)} · Total intereses: ${dinero(data.total_intereses)}</small>`;
+        if (data.seguro_pct > 0) resumen += `<br><small>Seguro: ${fmt(data.seguro_pct, 4)} % por periodo sobre el saldo · Total seguro: ${dinero(data.total_seguro)} (se suma a cada pago)</small>`;
         if (data.ahorro_intereses > 0) resumen += `<br><small>Ahorro en intereses por los abonos: ${dinero(data.ahorro_intereses)}</small>`;
         resumen += `<br><small>Tasa periódica aplicada: ${fmt(data.tasa_periodica_aplicada)}%</small>`;
         $('pres-resumen').innerHTML = resumen;
@@ -283,7 +286,7 @@ function simularPrestamo() {
             tr0.style.borderBottom = '1px solid #eee';
             tr0.innerHTML = `
                 <td style="text-align: center;">0<span class="nota-fila">Desembolso (hoy)</span></td>
-                <td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td style="font-weight: 600;">${dinero(data.monto_financiado)}</td>`;
             tbody.appendChild(tr0);
         }
@@ -292,8 +295,9 @@ function simularPrestamo() {
             tr.style.borderBottom = '1px solid #eee';
             tr.innerHTML = `
                 <td style="text-align: center;">${f.periodo}${f.nota ? `<span class="nota-fila">${f.nota}</span>` : ''}</td>
-                <td>${dinero(f.cuota + f.abono_extra)}</td>
+                <td>${dinero(f.cuota + f.seguro + f.abono_extra)}</td>
                 <td style="color: #d32f2f;">${dinero(f.interes)}</td>
+                <td style="color: #8e24aa;">${f.seguro > 0 ? dinero(f.seguro) : '—'}</td>
                 <td style="color: #1976d2;">${dinero(f.abono_capital)}</td>
                 <td style="color: #1976d2;">${f.abono_extra > 0 ? dinero(f.abono_extra) : '—'}</td>
                 <td style="font-weight: 600;">${dinero(f.saldo)}</td>`;
@@ -395,7 +399,7 @@ const EJEMPLOS = {
         cargar() {
             fijar({ 'pres-monto': 200000000, 'pres-porcentaje': '', 'pres-tasa': 24.96, 'pres-tipo': 'efectiva', 'pres-periodo': '1', 'pres-modalidad': 'vencida',
                     'pres-frecuencia': '12', 'pres-plazo': 24, 'pres-tipo-pago': 'vencido', 'pres-gracia': 0, 'pres-tipo-gracia': 'parcial',
-                    'pres-sistema': 'fija', 'pres-edad': '', 'pres-plazo-minimo': '', 'pres-modo-abono': 'plazo' });
+                    'pres-sistema': 'fija', 'pres-seguro': '', 'pres-edad': '', 'pres-plazo-minimo': '', 'pres-modo-abono': 'plazo' });
             toggleGracia();
             $('abonos-lista').innerHTML = '';
             agregarAbono();

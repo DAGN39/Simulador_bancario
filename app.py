@@ -262,6 +262,11 @@ def api_prestamos():
                 raise ValueError(f'El plazo ({plazo_meses} meses) es menor que el mínimo permitido para este '
                                  f'producto ({plazo_minimo} meses).')
 
+        # Seguro opcional (de vida u otro): % por periodo de pago sobre el saldo
+        seguro = 0.0
+        if datos.get('seguro') not in (None, ''):
+            seguro = numero(datos, 'seguro', 'Seguro (% por periodo)', maximo=10, permitir_cero=True) / 100
+
         abonos = {}
         lista_abonos = datos.get('abonos') or []
         if not isinstance(lista_abonos, list):
@@ -277,7 +282,8 @@ def api_prestamos():
             monto, tasa_periodica, plazo,
             anticipado=(opcion(datos, 'tipo_pago', 'Pago de las cuotas', ('vencido', 'anticipado'), 'vencido') == 'anticipado'),
             gracia=gracia, tipo_gracia=datos.get('tipo_gracia', 'parcial'),
-            abonos=abonos, modo_abono=datos.get('modo_abono', 'plazo'), sistema=sistema)
+            abonos=abonos, modo_abono=datos.get('modo_abono', 'plazo'), sistema=sistema, seguro=seguro)
+        res['seguro_pct'] = round(seguro * 100, 4)
         res['tasa_periodica_aplicada'] = round(tasa_periodica * 100, 4)
         res['plazo_meses'] = plazo_meses
         res['valor_bien'] = round(valor_bien, 2)
