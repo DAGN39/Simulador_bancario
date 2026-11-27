@@ -276,3 +276,5 @@ details.ayuda-modulo ul { padding-left: 1.2rem; }
 }
 .barra-ejemplo { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin: -0.5rem 0 1.2rem; }
 .barra-ejemplo .ayuda { margin-top: 0; flex: 1; min-width: 220px; }
+.btn-borrar { color: #b3261e; border-color: #e0a9a5; }
+.btn-borrar:hover { background-color: #fff5f5; }

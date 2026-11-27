@@ -409,6 +409,27 @@ const EJEMPLOS = {
 
 function cargarEjemplo(modulo) { EJEMPLOS[modulo].cargar(); }
 
+// Borra de una vez todos los datos de una pestaña y deja el formulario como al abrir la página
+const RESULTADOS = {
+    tasas: 'resultado-tasas', simple: 'resultado-simple', compuesto: 'resultado-compuesto',
+    prestamos: 'resultado-prestamos', anualidades: 'resultado-anualidades', descuento: 'resultado-descuento'
+};
+
+function borrarDatos(modulo) {
+    $('form-' + modulo).reset();              // vuelve cada campo a su valor inicial (vacío o el predeterminado)
+    limpiar($(RESULTADOS[modulo]));           // oculta el resultado y el mensaje de error
+    if (modulo === 'simple') toggleSimpleFields();
+    if (modulo === 'compuesto') toggleCompuestoFields();
+    if (modulo === 'anualidades') toggleAnualidadFields();
+    if (modulo === 'tasas') vistaPreviaTasas();
+    if (modulo === 'prestamos') {
+        $('abonos-lista').innerHTML = '';     // quita todas las filas de abonos
+        $('pres-resumen').innerHTML = '';
+        $('tbody-amortizacion').innerHTML = '';
+        toggleGracia();
+    }
+}
+
 // Resumen en una frase de lo que se va a convertir (se actualiza al llenar el formulario)
 function textoTasa(prefijo, conValor) {
     const sel = id => { const s = $(id); return s.options[s.selectedIndex].text.toLowerCase(); };
@@ -426,6 +447,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const barra = document.createElement('div');
         barra.className = 'barra-ejemplo';
         barra.innerHTML = `<button type="button" class="btn-secundario" onclick="cargarEjemplo('${modulo}')">▶ Cargar un ejemplo</button>
+                           <button type="button" class="btn-secundario btn-borrar" onclick="borrarDatos('${modulo}')">🗑 Borrar todos los datos</button>
                            <span class="ayuda">${ej.texto}</span>`;
         detalles.after(barra);
     });
