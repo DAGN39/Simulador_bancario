@@ -14,51 +14,47 @@ CORS(app)
 def index():
     return send_from_directory('frontend', 'index.html')
 
-# --- INTERÉS SIMPLE ---
+UNIDADES = {'1': 1, '2': 2, '3': 3, '4': 4, '12': 12, '360': 360, '365': 365}
+
 @app.route('/api/simple', methods=['POST'])
 def api_interes_simple():
     datos = request.get_json()
     try:
         calcular = datos['calcular']
-        
-        tiempo_periodos = 0
-        tasa_periodo = 0
-        
-        if 'tiempo' in datos and 'tiempo_unidad' in datos:
-            tiempo = float(datos['tiempo'])
-            unidad = datos['tiempo_unidad']
-            
-            if unidad == '1': tiempo_anios = tiempo
-            elif unidad == '2': tiempo_anios = tiempo / 2
-            elif unidad == '3': tiempo_anios = tiempo / 3
-            elif unidad == '4': tiempo_anios = tiempo / 4
-            elif unidad == '12': tiempo_anios = tiempo / 12
-            elif unidad == '360': tiempo_anios = tiempo / 360
-            elif unidad == '365': tiempo_anios = tiempo / 365
-            
-            tasa_unidad = int(datos.get('tasa_unidad', 1))
-            tasa_periodo = float(datos['tasa']) / 100 / tasa_unidad
-            tiempo_periodos = tiempo_anios * tasa_unidad
 
-        if calcular == 'interes':
-            res = interes_simple('interes', vp=float(datos['vp']), tasa_periodo=tasa_periodo, tiempo_periodos=tiempo_periodos)
-            return jsonify({'exito': True, 'resultado': round(res, 2), 'tipo_calc': 'interes'})
-        elif calcular == 'vf':
-            res = interes_simple('vf', vp=float(datos['vp']), tasa_periodo=tasa_periodo, tiempo_periodos=tiempo_periodos)
-            return jsonify({'exito': True, 'resultado': round(res, 2), 'tipo_calc': 'vf'})
+        tiempo_anios = None
+        if 'tiempo' in datos:
+            tiempo_anios = float(datos['tiempo']) / UNIDADES[str(datos['tiempo_unidad'])]
+
+        tasa_unidad = UNIDADES[str(datos.get('tasa_unidad', 1))]
+        tasa_periodo = float(datos['tasa']) / 100 if 'tasa' in datos else None
+        tiempo_periodos = tiempo_anios * tasa_unidad if tiempo_anios is not None else None
+
+        if calcular in ('interes', 'vf'):
+            res = interes_simple(calcular, vp=float(datos['vp']),
+                                 tasa_periodo=tasa_periodo, tiempo_periodos=tiempo_periodos)
+            return jsonify({'exito': True, 'resultado': round(res, 2), 'tipo_calc': calcular})
         elif calcular == 'vp':
-            res = interes_simple('vp', vf=float(datos['vf']), tasa_periodo=tasa_periodo, tiempo_periodos=tiempo_periodos)
+            res = interes_simple('vp', vf=float(datos['vf']),
+                                 tasa_periodo=tasa_periodo, tiempo_periodos=tiempo_periodos)
             return jsonify({'exito': True, 'resultado': round(res, 2), 'tipo_calc': 'vp'})
         elif calcular == 'tasa':
-            res = interes_simple('tasa', vp=float(datos['vp']), vf=float(datos['vf']), tiempo_periodos=tiempo_periodos)
+            # tasa anual: interés / (capital × años)
+            res = interes_simple('tasa', vp=float(datos['vp']), vf=float(datos['vf']),
+                                 tiempo_periodos=tiempo_anios)
             return jsonify({'exito': True, 'resultado': round(res * 100, 4), 'tipo_calc': 'tasa'})
         elif calcular == 'tiempo':
-            res = interes_simple('tiempo', vp=float(datos['vp']), vf=float(datos['vf']), tasa_periodo=tasa_periodo)
-            return jsonify({'exito': True, 'resultado': round(res, 4), 'tipo_calc': 'tiempo'})
+            periodos = interes_simple('tiempo', vp=float(datos['vp']), vf=float(datos['vf']),
+                                      tasa_periodo=tasa_periodo)
+            return jsonify({'exito': True, 'resultado': round(periodos / tasa_unidad, 4), 'tipo_calc': 'tiempo'})
 
+        return jsonify({'exito': False, 'error': 'Operación no válida'})
+    except KeyError as e:
+        return jsonify({'exito': False, 'error': f'Falta o es inválido el dato: {e}'})
     except Exception as e:
         return jsonify({'exito': False, 'error': str(e)})
 
+    
 # --- DESCUENTO BANCARIO ---
 @app.route('/api/descuento', methods=['POST'])
 def api_descuento():
