@@ -114,12 +114,11 @@ function toggleAnualidadFields() {
     if (!esVP) $('anu-diferimiento').value = 0;
 }
 
-// Con pago anticipado no hay periodo de gracia
+// Con pago anticipado la gracia solo puede ser con interés capitalizado
 function toggleGracia() {
     const anticipado = $('pres-tipo-pago').value === 'anticipado';
-    $('pres-gracia').disabled = anticipado;
     $('pres-tipo-gracia').disabled = anticipado;
-    if (anticipado) $('pres-gracia').value = 0;
+    if (anticipado) $('pres-tipo-gracia').value = 'total';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -236,38 +235,69 @@ function leerAbonos() {
 function simularPrestamo() {
     const box = $('resultado-prestamos');
     return ejecutar(box, async () => {
-        const monto = leerNumero('pres-monto', 'Monto del préstamo');
+        const monto = leerNumero('pres-monto', 'Monto del préstamo o valor del bien');
+        const porcentajeTexto = $('pres-porcentaje').value.trim();
+        if (porcentajeTexto !== '') leerNumero('pres-porcentaje', '% a financiar', { max: 100 });
         const tasa = leerNumero('pres-tasa', 'Tasa de interés', { max: 1000 });
         const plazo = leerNumero('pres-plazo', 'Número de cuotas', { entero: true, max: 600 });
+        const seguroTexto = $('pres-seguro').value.trim();
+        if (seguroTexto !== '') leerNumero('pres-seguro', 'Seguro (% por periodo)', { max: 10, permitirCero: true });
         const gracia = leerNumero('pres-gracia', 'Periodos de gracia', { entero: true, permitirCero: true });
         if (gracia >= plazo) throw new Error('Los periodos de gracia deben ser menos que el número de cuotas.');
 
         const data = await llamarApi('/api/prestamos', {
-            monto, tasa, tasa_tipo: $('pres-tipo').value, tasa_periodo: $('pres-periodo').value, tasa_modalidad: $('pres-modalidad').value,
+            monto, porcentaje_financiar: porcentajeTexto, tasa, tasa_tipo: $('pres-tipo').value, tasa_periodo: $('pres-periodo').value, tasa_modalidad: $('pres-modalidad').value,
             frecuencia_pago: $('pres-frecuencia').value, plazo,
             tipo_pago: $('pres-tipo-pago').value,
             gracia, tipo_gracia: $('pres-tipo-gracia').value,
-            abonos: leerAbonos(), modo_abono: $('pres-modo-abono').value
+            abonos: leerAbonos(), modo_abono: $('pres-modo-abono').value,
+            sistema_cuota: $('pres-sistema').value, seguro: seguroTexto,
+            edad: $('pres-edad').value.trim(), plazo_minimo: $('pres-plazo-minimo').value.trim()
         });
 
-        let resumen = `Cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_fija)}</span>`;
-        if (Math.abs(data.cuota_final - data.cuota_fija) > 0.005) {
-            resumen += `<br>Cuota después de los abonos: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_final)}</span>`;
+        let resumen;
+        if (data.sistema === 'variable') {
+            resumen = `Primera cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_fija)}</span>`
+                + `<br>Última cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_final)}</span>`;
+        } else {
+            resumen = `Cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_fija)}</span>`;
+            if (Math.abs(data.cuota_final - data.cuota_fija) > 0.005) {
+                resumen += `<br>Cuota después de los abonos: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_final)}</span>`;
+            }
         }
+        if (data.porcentaje_financiar < 100) {
+            resumen += `<br><small>Valor del bien: ${dinero(data.valor_bien)} · Financias el ${fmt(data.porcentaje_financiar, 2)} %: `
+                + `<b>${dinero(data.monto_financiado)}</b> · Cuota inicial (la pones tú): ${dinero(data.cuota_inicial)}</small>`;
+        }
+        resumen += `<br><small>Plazo: ${data.plazo_meses} meses`
+            + (data.edad_final !== undefined ? ` · Edad del titular: ${data.edad} años (al terminar: ${fmt(data.edad_final, 1)} años)` : '')
+            + `</small>`;
         resumen += `<br><small>Número de pagos: ${data.num_pagos} · Total pagado: ${dinero(data.total_pagado)} · Total intereses: ${dinero(data.total_intereses)}</small>`;
+        if (data.seguro_pct > 0) resumen += `<br><small>Seguro: ${fmt(data.seguro_pct, 4)} % por periodo sobre el saldo · Total seguro: ${dinero(data.total_seguro)} (se suma a cada pago)</small>`;
         if (data.ahorro_intereses > 0) resumen += `<br><small>Ahorro en intereses por los abonos: ${dinero(data.ahorro_intereses)}</small>`;
         resumen += `<br><small>Tasa periódica aplicada: ${fmt(data.tasa_periodica_aplicada)}%</small>`;
         $('pres-resumen').innerHTML = resumen;
 
         const tbody = $('tbody-amortizacion');
         tbody.innerHTML = '';
+        // Con pago vencido la tabla arranca en el periodo 0: el día del desembolso, sin cuota ni intereses
+        if (data.tabla.length && data.tabla[0].periodo === 1) {
+            const tr0 = document.createElement('tr');
+            tr0.style.borderBottom = '1px solid #eee';
+            tr0.innerHTML = `
+                <td style="text-align: center;">0<span class="nota-fila">Desembolso (hoy)</span></td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td style="font-weight: 600;">${dinero(data.monto_financiado)}</td>`;
+            tbody.appendChild(tr0);
+        }
         data.tabla.forEach(f => {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #eee';
             tr.innerHTML = `
                 <td style="text-align: center;">${f.periodo}${f.nota ? `<span class="nota-fila">${f.nota}</span>` : ''}</td>
-                <td>${dinero(f.cuota)}</td>
+                <td>${dinero(f.cuota + f.seguro + f.abono_extra)}</td>
                 <td style="color: #d32f2f;">${dinero(f.interes)}</td>
+                <td style="color: #8e24aa;">${f.seguro > 0 ? dinero(f.seguro) : '—'}</td>
                 <td style="color: #1976d2;">${dinero(f.abono_capital)}</td>
                 <td style="color: #1976d2;">${f.abono_extra > 0 ? dinero(f.abono_extra) : '—'}</td>
                 <td style="font-weight: 600;">${dinero(f.saldo)}</td>`;
@@ -320,7 +350,7 @@ function simularDescuento() {
             plazo_dias: leerNumero('desc-plazo-dias', 'Plazo (días)', { entero: true, max: 36500 }),
             tasa_interes: leerNumero('desc-tasa-interes', 'Tasa de interés', { max: 1000 }),
             fecha_descuento,
-            tasa_descuento: leerNumero('desc-tasa-descuento', 'Tasa de descuento', { max: 1000 }),
+            tasa_descuento: leerNumero('desc-tasa-descuento', 'Tasa de descuento', { max: 100 }),
             base_dias: $('desc-base-dias').value
         };
         const data = await llamarApi('/api/descuento', body);
@@ -332,3 +362,118 @@ function simularDescuento() {
             <small>Días exactos descontados: ${data.dias_descuento} días</small>`);
     });
 }
+
+// =====================================================
+//  EJEMPLOS (un botón en cada pestaña) Y RESUMEN DE LA CONVERSIÓN
+// =====================================================
+function fijar(valores) {
+    Object.entries(valores).forEach(([id, v]) => { const e = $(id); if (e) e.value = v; });
+}
+
+const EJEMPLOS = {
+    tasas: {
+        texto: 'Convierte una tasa de 24,96 % efectiva anual vencida a efectiva mensual vencida. Resultado esperado: 1,8742 % EMV.',
+        cargar() {
+            fijar({ 'tasas-origen-valor': 24.96, 'tasas-origen-tipo': 'efectiva', 'tasas-origen-periodo': '1', 'tasas-origen-modalidad': 'vencida',
+                    'tasas-destino-tipo': 'efectiva', 'tasas-destino-periodo': '12', 'tasas-destino-modalidad': 'vencida' });
+            vistaPreviaTasas(); simularTasa();
+        }
+    },
+    simple: {
+        texto: 'Un capital de $1.000.000 al 24 % anual durante 2 años: ¿cuál es el valor futuro? Resultado esperado: $1.480.000,00.',
+        cargar() {
+            fijar({ 'simple-calcular': 'vf', 'simple-vp': 1000000, 'simple-tasa': 24, 'simple-tasa-unidad': '1', 'simple-tiempo': 2, 'simple-tiempo-unidad': '1' });
+            toggleSimpleFields(); simularSimple();
+        }
+    },
+    compuesto: {
+        texto: '$1.000.000 al 24 % nominal mensual vencida durante 1 año: ¿cuál es el valor futuro? Resultado esperado: $1.268.241,79.',
+        cargar() {
+            fijar({ 'comp-calcular': 'vf', 'comp-monto': 1000000, 'comp-tasa': 24, 'comp-tipo': 'nominal', 'comp-periodo': '12',
+                    'comp-modalidad': 'vencida', 'comp-tiempo': 1, 'comp-tiempo-unidad': '1' });
+            toggleCompuestoFields(); simularCompuesto();
+        }
+    },
+    prestamos: {
+        texto: 'Crédito de $200.000.000 al 24,96 % efectiva anual en 24 cuotas mensuales, con un abono de $38.000.000 en la cuota 8 que reduce el tiempo. Resultado esperado: cuota $10.424.140,47 y 20 pagos (sin el abono serían 24).',
+        cargar() {
+            fijar({ 'pres-monto': 200000000, 'pres-porcentaje': '', 'pres-tasa': 24.96, 'pres-tipo': 'efectiva', 'pres-periodo': '1', 'pres-modalidad': 'vencida',
+                    'pres-frecuencia': '12', 'pres-plazo': 24, 'pres-tipo-pago': 'vencido', 'pres-gracia': 0, 'pres-tipo-gracia': 'parcial',
+                    'pres-sistema': 'fija', 'pres-seguro': '', 'pres-edad': '', 'pres-plazo-minimo': '', 'pres-modo-abono': 'plazo' });
+            toggleGracia();
+            $('abonos-lista').innerHTML = '';
+            agregarAbono();
+            const f = document.querySelector('#abonos-lista .abono-fila');
+            f.querySelector('.abono-cuota').value = 8;
+            f.querySelector('.abono-valor').value = 38000000;
+            simularPrestamo();
+        }
+    },
+    anualidades: {
+        texto: 'Arriendo de $1.000.000 pagado al inicio de cada mes durante 12 meses e invertido al 24 % nominal mensual vencida: ¿cuánto acumulas? (valor futuro, anualidad anticipada). Resultado esperado: $13.680.331,52.',
+        cargar() {
+            fijar({ 'anu-calcular': 'vf', 'anu-pago': 1000000, 'anu-n': 12, 'anu-frecuencia': '12', 'anu-tipo-pago': 'anticipada',
+                    'anu-tasa': 24, 'anu-tipo': 'nominal', 'anu-periodo': '12', 'anu-modalidad': 'vencida', 'anu-diferimiento': 0 });
+            toggleAnualidadFields(); simularAnualidad();
+        }
+    },
+    descuento: {
+        texto: 'Documento de $1.000.000 emitido el 2026-01-01 a 90 días con 24 % de interés, vendido al banco el 2026-02-01 con descuento del 30 % (base 360). Resultado esperado: valor de la transacción $1.007.883,33.',
+        cargar() {
+            fijar({ 'desc-valor-inicial': 1000000, 'desc-fecha-inicio': '2026-01-01', 'desc-plazo-dias': 90, 'desc-tasa-interes': 24,
+                    'desc-fecha-descuento': '2026-02-01', 'desc-tasa-descuento': 30, 'desc-base-dias': '360' });
+            simularDescuento();
+        }
+    }
+};
+
+function cargarEjemplo(modulo) { EJEMPLOS[modulo].cargar(); }
+
+// Borra de una vez todos los datos de una pestaña y deja el formulario como al abrir la página
+const RESULTADOS = {
+    tasas: 'resultado-tasas', simple: 'resultado-simple', compuesto: 'resultado-compuesto',
+    prestamos: 'resultado-prestamos', anualidades: 'resultado-anualidades', descuento: 'resultado-descuento'
+};
+
+function borrarDatos(modulo) {
+    $('form-' + modulo).reset();              // vuelve cada campo a su valor inicial (vacío o el predeterminado)
+    limpiar($(RESULTADOS[modulo]));           // oculta el resultado y el mensaje de error
+    if (modulo === 'simple') toggleSimpleFields();
+    if (modulo === 'compuesto') toggleCompuestoFields();
+    if (modulo === 'anualidades') toggleAnualidadFields();
+    if (modulo === 'tasas') vistaPreviaTasas();
+    if (modulo === 'prestamos') {
+        $('abonos-lista').innerHTML = '';     // quita todas las filas de abonos
+        $('pres-resumen').innerHTML = '';
+        $('tbody-amortizacion').innerHTML = '';
+        toggleGracia();
+    }
+}
+
+// Resumen en una frase de lo que se va a convertir (se actualiza al llenar el formulario)
+function textoTasa(prefijo, conValor) {
+    const sel = id => { const s = $(id); return s.options[s.selectedIndex].text.toLowerCase(); };
+    const valor = conValor ? ($(prefijo + '-valor').value.trim() || '…') + ' % ' : '';
+    return `<b>${valor}${sel(prefijo + '-tipo')} ${sel(prefijo + '-periodo')} ${sel(prefijo + '-modalidad')}</b>`;
+}
+
+function vistaPreviaTasas() {
+    $('tasas-vista-previa').innerHTML = `Vas a convertir: ${textoTasa('tasas-origen', true)} &nbsp;➜&nbsp; ${textoTasa('tasas-destino', false)}`;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    Object.entries(EJEMPLOS).forEach(([modulo, ej]) => {
+        const detalles = $(modulo).querySelector('details.ayuda-modulo');
+        const barra = document.createElement('div');
+        barra.className = 'barra-ejemplo';
+        barra.innerHTML = `<button type="button" class="btn-secundario" onclick="cargarEjemplo('${modulo}')">▶ Cargar un ejemplo</button>
+                           <button type="button" class="btn-secundario btn-borrar" onclick="borrarDatos('${modulo}')">🗑 Borrar todos los datos</button>
+                           <span class="ayuda">${ej.texto}</span>`;
+        detalles.after(barra);
+    });
+    // Para la pestaña de tasas, además se va actualizando el resumen al escribir
+    const tasasForm = $('form-tasas');
+    tasasForm.addEventListener('input', vistaPreviaTasas);
+    tasasForm.addEventListener('change', vistaPreviaTasas);
+    vistaPreviaTasas();
+});

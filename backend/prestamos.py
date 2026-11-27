@@ -1,8 +1,10 @@
 # backend/prestamos.py
 """Tabla de amortización con:
 - pago vencido (fin de periodo) o anticipado (primer pago en el periodo 0)
-- periodo de gracia (solo intereses o interés capitalizado), solo con pago vencido
+- periodo de gracia (solo intereses o interés capitalizado); con pago anticipado solo interés capitalizado
 - abonos extra a capital, con opción de reducir tiempo o reducir cuota
+- seguro opcional (vida u otro): % por periodo sobre el saldo, se suma a cada pago y no es amortización
+- sistema de cuotas: fija (anualidad) o variable (abono constante a capital, la cuota baja cada periodo)
 """
 
 MAX_CUOTAS = 600
@@ -23,7 +25,7 @@ def _pmt_vencida(saldo, i, n):
     return saldo / n
 
 
-def _simular(monto, i, plazo, anticipado, gracia, tipo_gracia, abonos, modo):
+def _simular(monto, i, plazo, anticipado, gracia, tipo_gracia, abonos, modo, sistema='fija', seguro=0.0):
     primera = 0 if anticipado else 1          # etiqueta del primer pago
     ultimo = plazo - 1 if anticipado else plazo   # etiqueta del último pago programado
     n_amort = plazo - gracia                  # cuotas que realmente amortizan
@@ -31,6 +33,7 @@ def _simular(monto, i, plazo, anticipado, gracia, tipo_gracia, abonos, modo):
     saldo = monto
     cuota = None
     cuota_inicial = None
+    capital_fijo = None                       # solo cuota variable: capital que se amortiza en cada cuota
     tabla = []
     usados = set()
     label = primera
@@ -39,7 +42,9 @@ def _simular(monto, i, plazo, anticipado, gracia, tipo_gracia, abonos, modo):
     while idx < plazo * 2 + 5:
         en_gracia = idx < gracia
         # En el pago anticipado, el pago del periodo 0 no genera interés
+        saldo_ini = saldo
         interes = 0.0 if (anticipado and idx == 0) else saldo * i
+        prima = saldo_ini * seguro      # seguro: % por periodo sobre el saldo al inicio del periodo
         nota = ''
         extra = 0.0
 
@@ -52,10 +57,22 @@ def _simular(monto, i, plazo, anticipado, gracia, tipo_gracia, abonos, modo):
                 pago = 0.0
                 saldo += interes
                 nota = 'Gracia: interés capitalizado'
+        elif sistema == 'variable':
+            # Cuota variable: mismo abono a capital en todas las cuotas; los intereses bajan con el saldo
+            if capital_fijo is None:
+                capital_fijo = saldo / n_amort
+                cuota_inicial = capital_fijo + interes
+            es_ultimo = label == ultimo
+            abono_cap = saldo if es_ultimo else capital_fijo
+            pago = abono_cap + interes
+            saldo = 0.0 if es_ultimo else saldo - abono_cap
+            cuota = pago                      # al final queda el valor de la última cuota
         else:
             if cuota is None:
                 cuota = _pmt_vencida(saldo, i, n_amort)
-                if anticipado:
+                # Sin gracia, el primer pago anticipado es en el periodo 0 (se descuenta un periodo).
+                # Con gracia, el saldo que se amortiza ya incluye el interés del último periodo de gracia.
+                if anticipado and gracia == 0:
                     cuota /= (1 + i)
                 cuota_inicial = cuota
 
@@ -89,6 +106,7 @@ def _simular(monto, i, plazo, anticipado, gracia, tipo_gracia, abonos, modo):
         tabla.append({
             'periodo': label,
             'cuota': round(pago, 2),
+            'seguro': round(prima, 2),
             'interes': round(interes, 2),
             'abono_capital': round(abono_cap, 2),
             'abono_extra': round(extra, 2),
@@ -106,13 +124,13 @@ def _simular(monto, i, plazo, anticipado, gracia, tipo_gracia, abonos, modo):
         raise ValueError(f'El abono de la cuota {c} no se pudo aplicar porque el crédito ya estaba '
                          'pagado antes de esa cuota (por un abono anterior).')
 
-    total_pagado = sum(f['cuota'] + f['abono_extra'] for f in tabla)
+    total_pagado = sum(f['cuota'] + f['seguro'] + f['abono_extra'] for f in tabla)
     total_intereses = sum(f['interes'] for f in tabla)
     return cuota_inicial, cuota, tabla, total_pagado, total_intereses
 
 
 def calcular_tabla_amortizacion(monto, tasa_periodica, plazo_cuotas, anticipado=False,
-                                gracia=0, tipo_gracia='parcial', abonos=None, modo_abono='plazo'):
+                                gracia=0, tipo_gracia='parcial', abonos=None, modo_abono='plazo', sistema='fija', seguro=0.0):
     abonos = abonos or {}
 
     if monto <= 0:
@@ -129,8 +147,17 @@ def calcular_tabla_amortizacion(monto, tasa_periodica, plazo_cuotas, anticipado=
         raise ValueError('Tipo de gracia no válido.')
     if modo_abono not in ('plazo', 'cuota'):
         raise ValueError('La opción de abono debe ser reducir tiempo o reducir cuota.')
-    if gracia > 0 and anticipado:
-        raise ValueError('El periodo de gracia solo se puede usar con pagos vencidos.')
+    if seguro < 0 or seguro > 0.10:
+        raise ValueError('El seguro debe ser un porcentaje entre 0 y 10.')
+    if sistema not in ('fija', 'variable'):
+        raise ValueError('El sistema de cuotas debe ser fija o variable.')
+    if gracia > 0 and anticipado and tipo_gracia != 'total':
+        raise ValueError('Con pago anticipado el periodo de gracia solo puede ser con interés capitalizado '
+                         '(no pago nada).')
+    if sistema == 'variable' and abonos:
+        raise ValueError('La cuota variable no se puede combinar con abonos extra. Quita los abonos o elige cuota fija.')
+    if sistema == 'variable' and anticipado and gracia > 0:
+        raise ValueError('La cuota variable con periodo de gracia solo está disponible con pago vencido.')
     if gracia >= plazo_cuotas:
         raise ValueError('Los periodos de gracia deben ser menos que el número de cuotas.')
 
@@ -143,12 +170,12 @@ def calcular_tabla_amortizacion(monto, tasa_periodica, plazo_cuotas, anticipado=
                              + (' (después del periodo de gracia).' if gracia else '.'))
 
     cuota_ini, cuota_fin, tabla, pagado, intereses = _simular(
-        monto, tasa_periodica, plazo_cuotas, anticipado, gracia, tipo_gracia, abonos, modo_abono)
+        monto, tasa_periodica, plazo_cuotas, anticipado, gracia, tipo_gracia, abonos, modo_abono, sistema, seguro)
 
     ahorro = 0.0
     if abonos:
         _, _, _, _, int_base = _simular(monto, tasa_periodica, plazo_cuotas, anticipado,
-                                        gracia, tipo_gracia, {}, modo_abono)
+                                        gracia, tipo_gracia, {}, modo_abono, sistema, seguro)
         ahorro = int_base - intereses
 
     return {
@@ -159,4 +186,6 @@ def calcular_tabla_amortizacion(monto, tasa_periodica, plazo_cuotas, anticipado=
         'total_intereses': round(intereses, 2),
         'ahorro_intereses': round(ahorro, 2),
         'num_pagos': len(tabla),
+        'sistema': sistema,
+        'total_seguro': round(sum(f['seguro'] for f in tabla), 2),
     }

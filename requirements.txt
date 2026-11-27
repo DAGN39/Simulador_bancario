@@ -1,7 +1,3 @@
-
 Flask
 Flask-Cors
-matplotlib
-numpy
 gunicorn
-# ... el resto de tus librerías
