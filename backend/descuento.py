@@ -14,6 +14,10 @@ def calcular_descuento_bancario(valor_inicial, fecha_inicio_str, plazo_dias, tas
     fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d')
     fecha_descuento = datetime.strptime(fecha_descuento_str, '%Y-%m-%d')
 
+    for f in (fecha_inicio, fecha_descuento):
+        if not 1900 <= f.year <= 2200:
+            raise ValueError('Las fechas deben estar entre los años 1900 y 2200.')
+
     fecha_vencimiento = fecha_inicio + timedelta(days=plazo_dias)
 
     if fecha_descuento < fecha_inicio:
@@ -27,6 +31,10 @@ def calcular_descuento_bancario(valor_inicial, fecha_inicio_str, plazo_dias, tas
     dias_descuento = (fecha_vencimiento - fecha_descuento).days
 
     valor_transaccion = valor_vencimiento * (1 - (tasa_descuento * (dias_descuento / base_dias)))
+
+    if valor_transaccion <= 0:
+        raise ValueError('Con esa tasa de descuento y esos días el valor de la transacción sería cero o negativo. '
+                         'Reduce la tasa de descuento.')
 
     return {
         'fecha_vencimiento': fecha_vencimiento.strftime('%Y-%m-%d'),

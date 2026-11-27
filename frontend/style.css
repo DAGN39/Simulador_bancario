@@ -216,8 +216,8 @@ details.ayuda-modulo ul { padding-left: 1.2rem; }
     cursor: pointer;
 }
 .btn-secundario:hover { background-color: var(--color-1); }
-.tabla-amort th { padding: 10px; }
-.tabla-amort td { padding: 8px; }
+.tabla-amort th { padding: 10px 5px; }
+.tabla-amort td { padding: 8px 5px; }
 .nota-fila { display: block; font-size: 0.7rem; color: var(--color-4); font-weight: 400; }
 .glosario dt { font-weight: 600; margin-top: 0.9rem; color: var(--color-5); }
 .glosario dd { margin-left: 0; line-height: 1.55; }

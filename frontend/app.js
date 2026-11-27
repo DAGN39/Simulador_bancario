@@ -114,12 +114,11 @@ function toggleAnualidadFields() {
     if (!esVP) $('anu-diferimiento').value = 0;
 }
 
-// Con pago anticipado no hay periodo de gracia
+// Con pago anticipado la gracia solo puede ser con interés capitalizado
 function toggleGracia() {
     const anticipado = $('pres-tipo-pago').value === 'anticipado';
-    $('pres-gracia').disabled = anticipado;
     $('pres-tipo-gracia').disabled = anticipado;
-    if (anticipado) $('pres-gracia').value = 0;
+    if (anticipado) $('pres-tipo-gracia').value = 'total';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -247,13 +246,24 @@ function simularPrestamo() {
             frecuencia_pago: $('pres-frecuencia').value, plazo,
             tipo_pago: $('pres-tipo-pago').value,
             gracia, tipo_gracia: $('pres-tipo-gracia').value,
-            abonos: leerAbonos(), modo_abono: $('pres-modo-abono').value
+            abonos: leerAbonos(), modo_abono: $('pres-modo-abono').value,
+            sistema_cuota: $('pres-sistema').value,
+            edad: $('pres-edad').value.trim(), plazo_minimo: $('pres-plazo-minimo').value.trim()
         });
 
-        let resumen = `Cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_fija)}</span>`;
-        if (Math.abs(data.cuota_final - data.cuota_fija) > 0.005) {
-            resumen += `<br>Cuota después de los abonos: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_final)}</span>`;
+        let resumen;
+        if (data.sistema === 'variable') {
+            resumen = `Primera cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_fija)}</span>`
+                + `<br>Última cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_final)}</span>`;
+        } else {
+            resumen = `Cuota: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_fija)}</span>`;
+            if (Math.abs(data.cuota_final - data.cuota_fija) > 0.005) {
+                resumen += `<br>Cuota después de los abonos: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_final)}</span>`;
+            }
         }
+        resumen += `<br><small>Plazo: ${data.plazo_meses} meses`
+            + (data.edad_final !== undefined ? ` · Edad del titular: ${data.edad} años (al terminar: ${fmt(data.edad_final, 1)} años)` : '')
+            + `</small>`;
         resumen += `<br><small>Número de pagos: ${data.num_pagos} · Total pagado: ${dinero(data.total_pagado)} · Total intereses: ${dinero(data.total_intereses)}</small>`;
         if (data.ahorro_intereses > 0) resumen += `<br><small>Ahorro en intereses por los abonos: ${dinero(data.ahorro_intereses)}</small>`;
         resumen += `<br><small>Tasa periódica aplicada: ${fmt(data.tasa_periodica_aplicada)}%</small>`;
@@ -320,7 +330,7 @@ function simularDescuento() {
             plazo_dias: leerNumero('desc-plazo-dias', 'Plazo (días)', { entero: true, max: 36500 }),
             tasa_interes: leerNumero('desc-tasa-interes', 'Tasa de interés', { max: 1000 }),
             fecha_descuento,
-            tasa_descuento: leerNumero('desc-tasa-descuento', 'Tasa de descuento', { max: 1000 }),
+            tasa_descuento: leerNumero('desc-tasa-descuento', 'Tasa de descuento', { max: 100 }),
             base_dias: $('desc-base-dias').value
         };
         const data = await llamarApi('/api/descuento', body);
