@@ -27,7 +27,6 @@
                 <h2>Conversión de Tasas de Interés</h2>
                 <form id="form-tasas">
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <!-- COLUMNA ORIGEN -->
                         <div style="flex: 1; min-width: 250px;">
                             <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Tasa Origen</h3>
                             <div class="input-group">
@@ -60,7 +59,6 @@
                             </div>
                         </div>
 
-                        <!-- COLUMNA DESTINO -->
                         <div style="flex: 1; min-width: 250px;">
                             <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Tasa Destino</h3>
                             <div class="input-group">
@@ -89,7 +87,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <button type="button" class="btn-calcular" onclick="simularTasa()" style="margin-top: 1.5rem;">Convertir Tasa</button>
                 </form>
                 <div id="resultado-tasas" class="resultado-box hidden"></div>
@@ -116,7 +113,6 @@
                 <div id="resultado-simple" class="resultado-box hidden"></div>
             </section>
 
-            <!-- MÓDULO 3 y 4 (En construcción) -->
             <!-- MÓDULO 3: INTERÉS COMPUESTO -->
             <section id="compuesto" class="tab-content">
                 <h2>Interés Compuesto</h2>
@@ -132,20 +128,38 @@
                         <label id="lbl-comp-monto">Monto / Capital ($):</label>
                         <input type="number" id="comp-monto" step="0.01" placeholder="Ej: 20000" required>
                     </div>
-                    <div class="input-group">
-                        <label>Tasa de Interés Anual (%):</label>
-                        <input type="number" id="comp-tasa" step="0.01" placeholder="Ej: 15" required>
+                    
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Tasa de Interés (%):</label>
+                            <input type="number" id="comp-tasa" step="0.01" placeholder="Ej: 15" required>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Tipo:</label>
+                            <select id="comp-tipo">
+                                <option value="nominal">Nominal</option>
+                                <option value="efectiva">Efectiva</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Periodo Tasa:</label>
+                            <select id="comp-periodo">
+                                <option value="1">Anual</option>
+                                <option value="2">Semestral</option>
+                                <option value="3">Cuatrimestral</option>
+                                <option value="4">Trimestral</option>
+                                <option value="12">Mensual</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Modalidad:</label>
+                            <select id="comp-modalidad">
+                                <option value="vencida">Vencida</option>
+                                <option value="anticipada">Anticipada</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>Capitalización:</label>
-                        <select id="comp-capitalizacion">
-                            <option value="1">Anual</option>
-                            <option value="2">Semestral</option>
-                            <option value="3">Cuatrimestral</option>
-                            <option value="4" selected>Trimestral</option>
-                            <option value="12">Mensual</option>
-                        </select>
-                    </div>
+
                     <div class="input-group">
                         <label>Tiempo (en años):</label>
                         <input type="number" id="comp-tiempo" step="0.01" placeholder="Ej: 10" required>
@@ -154,22 +168,64 @@
                 </form>
                 <div id="resultado-compuesto" class="resultado-box hidden"></div>
             </section>
+
             <!-- MÓDULO 4: PRÉSTAMOS -->
             <section id="prestamos" class="tab-content">
                 <h2>Simulación de Crédito</h2>
                 <form id="form-prestamos">
                     <div class="input-group">
                         <label>Monto del Préstamo ($):</label>
-                        <input type="number" id="pres-monto" step="0.01" placeholder="Ej: 10000000" required>
+                        <input type="number" id="pres-monto" step="0.01" placeholder="Ej: 2400000" required>
                     </div>
-                    <div class="input-group">
-                        <label>Tasa de Interés Mensual (%):</label>
-                        <input type="number" id="pres-tasa" step="0.01" placeholder="Ej: 2" required>
+                    
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Tasa de Interés (%):</label>
+                            <input type="number" id="pres-tasa" step="0.01" placeholder="Ej: 36" required>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Tipo:</label>
+                            <select id="pres-tipo">
+                                <option value="nominal">Nominal</option>
+                                <option value="efectiva">Efectiva</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Periodo Tasa:</label>
+                            <select id="pres-periodo">
+                                <option value="1">Anual</option>
+                                <option value="2">Semestral</option>
+                                <option value="3">Cuatrimestral</option>
+                                <option value="4">Trimestral</option>
+                                <option value="12">Mensual</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Modalidad:</label>
+                            <select id="pres-modalidad">
+                                <option value="vencida">Vencida</option>
+                                <option value="anticipada">Anticipada</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>Plazo (Número de meses):</label>
-                        <input type="number" id="pres-plazo" placeholder="Ej: 12" required>
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1;">
+                            <label>Frecuencia de Pago:</label>
+                            <select id="pres-frecuencia">
+                                <option value="12">Mensual</option>
+                                <option value="4">Trimestral</option>
+                                <option value="3">Cuatrimestral</option>
+                                <option value="2">Semestral</option>
+                                <option value="1">Anual</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <label>Número de Cuotas (Plazo):</label>
+                            <input type="number" id="pres-plazo" placeholder="Ej: 9" required>
+                        </div>
                     </div>
+
                     <button type="button" class="btn-calcular" onclick="simularPrestamo()">Generar Tabla</button>
                 </form>
                 
@@ -179,23 +235,20 @@
                         <table id="tabla-amortizacion" style="width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem;">
                             <thead style="background-color: var(--color-1); position: sticky; top: 0; z-index: 1;">
                                 <tr>
-                                    <th style="padding: 10px; text-align: center;">Mes</th>
-                                    <th style="padding: 10px;">Cuota</th>
+                                    <th style="padding: 10px; text-align: center;">Cuota</th>
+                                    <th style="padding: 10px;">Pago</th>
                                     <th style="padding: 10px;">Interés</th>
                                     <th style="padding: 10px;">Abono Capital</th>
-                                    <th style="padding: 10px;">Saldo Restante</th>
+                                    <th style="padding: 10px;">Saldo</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbody-amortizacion">
-                                <!-- Aquí JS insertará las filas -->
-                            </tbody>
+                            <tbody id="tbody-amortizacion"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
         </main>
     </div>
-    <!-- Ruta corregida: el archivo está directo en frontend -->
     <script src="app.js"></script>
 </body>
 </html>

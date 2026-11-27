@@ -23,14 +23,8 @@ def api_interes_simple():
         capital = float(datos['capital'])
         tasa = float(datos['tasa']) / 100
         tiempo = float(datos['tiempo'])
-        
         interes, valor_futuro = interes_simple(capital, tasa, tiempo)
-        
-        return jsonify({
-            'exito': True,
-            'interes': round(interes, 2),
-            'valor_futuro': round(valor_futuro, 2)
-        })
+        return jsonify({'exito': True, 'interes': round(interes, 2), 'valor_futuro': round(valor_futuro, 2)})
     except Exception as e:
         return jsonify({'exito': False, 'error': str(e)})
 
@@ -39,76 +33,61 @@ def api_interes_simple():
 def api_tasas():
     datos = request.get_json()
     try:
-        origen_valor = float(datos['origen_valor']) / 100
-        origen_tipo = datos['origen_tipo']
-        origen_periodo = int(datos['origen_periodo'])
-        origen_modalidad = datos['origen_modalidad']
-        
-        destino_tipo = datos['destino_tipo']
-        destino_periodo = int(datos['destino_periodo'])
-        destino_modalidad = datos['destino_modalidad']
-        
         tasa_destino, tasa_ea = conversion_tasas(
-            origen_valor, origen_tipo, origen_periodo, origen_modalidad,
-            destino_tipo, destino_periodo, destino_modalidad
+            float(datos['origen_valor']) / 100, datos['origen_tipo'], int(datos['origen_periodo']), datos['origen_modalidad'],
+            datos['destino_tipo'], int(datos['destino_periodo']), datos['destino_modalidad']
         )
-        
-        return jsonify({
-            'exito': True,
-            'tasa_destino': round(tasa_destino * 100, 6),
-            'tasa_ea': round(tasa_ea, 6)
-        })
+        return jsonify({'exito': True, 'tasa_destino': round(tasa_destino * 100, 6), 'tasa_ea': round(tasa_ea, 6)})
     except Exception as e:
         return jsonify({'exito': False, 'error': str(e)})
 
-# --- RUTA INTERÉS COMPUESTO ---
+# --- RUTA INTERÉS COMPUESTO (AUTOMÁTICO) ---
 @app.route('/api/compuesto', methods=['POST'])
 def api_interes_compuesto():
     datos = request.get_json()
     try:
-        calcular = datos['calcular'] 
+        calcular = datos['calcular']
         monto = float(datos['monto'])
-        tasa = float(datos['tasa']) / 100
-        capitalizacion = int(datos['capitalizacion'])
         tiempo = float(datos['tiempo'])
         
-        # --- ESTOS PRINTS NOS DIRÁN LA VERDAD ---
-        print("\n--- DATOS RECIBIDOS EN PYTHON ---")
-        print(f"Monto: {monto} | Tasa (%): {tasa*100} | Capitalización: {capitalizacion} | Tiempo: {tiempo}")
-        
-        resultado, tasa_periodica, periodos = interes_compuesto(
-            calcular, monto, tasa, capitalizacion, tiempo
+        # Convertimos la tasa ingresada a una Tasa Efectiva Anual (EA)
+        _, tasa_ea = conversion_tasas(
+            float(datos['tasa']) / 100, datos['tasa_tipo'], int(datos['tasa_periodo']), datos['tasa_modalidad'],
+            'efectiva', 1, 'vencida'
         )
         
-        print(f"Fórmula aplicada: {monto} / (1 + {tasa_periodica})^{periodos}")
-        print(f"Resultado exacto de Python: {resultado}")
-        print("---------------------------------\n")
-        # ---------------------------------------
-
+        resultado = interes_compuesto(calcular, monto, tasa_ea, tiempo)
+        
         return jsonify({
             'exito': True,
             'resultado': round(resultado, 2),
-            'tasa_periodica': round(tasa_periodica, 6),
-            'periodos': periodos
+            'tasa_ea': round(tasa_ea * 100, 6)
         })
     except Exception as e:
         return jsonify({'exito': False, 'error': str(e)})
 
+# --- RUTA SIMULADOR DE PRÉSTAMOS (AUTOMÁTICO) ---
 @app.route('/api/prestamos', methods=['POST'])
 def api_prestamos():
     datos = request.get_json()
     try:
         monto = float(datos['monto'])
-        # Asumimos que la tasa que envían es mensual en porcentaje (ej: 2 para 2%)
-        tasa_mensual = float(datos['tasa']) / 100 
+        frecuencia_pago = int(datos['frecuencia_pago'])
         plazo = int(datos['plazo'])
         
-        cuota_fija, tabla = calcular_tabla_amortizacion(monto, tasa_mensual, plazo)
+        # Convertimos la tasa a la tasa periódica exacta para la frecuencia de pago
+        tasa_periodica, _ = conversion_tasas(
+            float(datos['tasa']) / 100, datos['tasa_tipo'], int(datos['tasa_periodo']), datos['tasa_modalidad'],
+            'efectiva', frecuencia_pago, 'vencida'
+        )
+        
+        cuota_fija, tabla = calcular_tabla_amortizacion(monto, tasa_periodica, plazo)
         
         return jsonify({
             'exito': True,
             'cuota_fija': cuota_fija,
-            'tabla': tabla
+            'tabla': tabla,
+            'tasa_periodica_aplicada': round(tasa_periodica * 100, 4)
         })
     except Exception as e:
         return jsonify({'exito': False, 'error': str(e)})

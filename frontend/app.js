@@ -6,10 +6,8 @@ tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
         tabContents.forEach(c => c.classList.remove('active'));
-
         btn.classList.add('active');
-        const targetId = btn.getAttribute('data-target');
-        document.getElementById(targetId).classList.add('active');
+        document.getElementById(btn.getAttribute('data-target')).classList.add('active');
     });
 });
 
@@ -25,7 +23,6 @@ async function simularTasa() {
     const destinoModalidad = document.getElementById('tasas-destino-modalidad').value;
     
     const resultadoBox = document.getElementById('resultado-tasas');
-    
     if(!origenValor) return alert("Por favor ingresa el valor de la tasa");
 
     try {
@@ -33,16 +30,10 @@ async function simularTasa() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                origen_valor: origenValor,
-                origen_tipo: origenTipo,
-                origen_periodo: origenPeriodo,
-                origen_modalidad: origenModalidad,
-                destino_tipo: destinoTipo,
-                destino_periodo: destinoPeriodo,
-                destino_modalidad: destinoModalidad
+                origen_valor: origenValor, origen_tipo: origenTipo, origen_periodo: origenPeriodo, origen_modalidad: origenModalidad,
+                destino_tipo: destinoTipo, destino_periodo: destinoPeriodo, destino_modalidad: destinoModalidad
             })
         });
-
         const data = await response.json();
 
         if(data.exito) {
@@ -51,18 +42,13 @@ async function simularTasa() {
             let letraModalidad = destinoModalidad === 'vencida' ? 'V' : 'A';
             
             resultadoBox.innerHTML = `
-                <strong>Resultado de la Conversión:</strong> <br> 
+                <strong>Resultado:</strong> <br> 
                 Tasa Destino: <b>${data.tasa_destino.toFixed(4)}% ${letraTipo}${letraPeriodo}${letraModalidad}</b> <br>
                 <small>Equivalente a una tasa Efectiva Anual Vencida (EA) del ${(data.tasa_ea * 100).toFixed(4)}%</small>
             `;
             resultadoBox.classList.remove('hidden');
-        } else {
-            alert("Error: " + data.error);
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Error conectando con el backend. Revisa la consola (F12).");
-    }
+        } else { alert("Error: " + data.error); }
+    } catch (error) { alert("Error conectando con el backend."); }
 }
 
 // --- INTERÉS SIMPLE ---
@@ -71,7 +57,6 @@ async function simularSimple() {
     const tasa = document.getElementById('simple-tasa').value;
     const tiempo = document.getElementById('simple-tiempo').value;
     const resultadoBox = document.getElementById('resultado-simple');
-    
     if(!capital || !tasa || !tiempo) return alert("Completa todos los campos");
 
     try {
@@ -80,9 +65,7 @@ async function simularSimple() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ capital, tasa, tiempo })
         });
-
         const data = await response.json();
-
         if(data.exito) {
             resultadoBox.innerHTML = `
                 <strong>Cálculo Realizado:</strong> <br> 
@@ -90,68 +73,52 @@ async function simularSimple() {
                 Valor Futuro: <b>$${data.valor_futuro.toLocaleString('es-CO')}</b>
             `;
             resultadoBox.classList.remove('hidden');
-        } else {
-            alert("Error: " + data.error);
-        }
-    } catch (error) {
-        alert("Error conectando con el backend.");
-    }
+        } else { alert("Error: " + data.error); }
+    } catch (error) { alert("Error conectando con el backend."); }
 }
-// ... (código anterior de pestañas, tasas y simple se mantiene igual) ...
 
 // --- INTERÉS COMPUESTO ---
 async function simularCompuesto() {
     const calcular = document.getElementById('comp-calcular').value;
     const monto = document.getElementById('comp-monto').value;
     const tasa = document.getElementById('comp-tasa').value;
-    const capitalizacion = document.getElementById('comp-capitalizacion').value;
+    const tipo = document.getElementById('comp-tipo').value;
+    const periodo = document.getElementById('comp-periodo').value;
+    const modalidad = document.getElementById('comp-modalidad').value;
     const tiempo = document.getElementById('comp-tiempo').value;
     const resultadoBox = document.getElementById('resultado-compuesto');
     
-    if(!monto || !tasa || !tiempo) {
-        return alert("Por favor completa todos los campos");
-    }
+    if(!monto || !tasa || !tiempo) return alert("Completa todos los campos");
 
     try {
         const response = await fetch('/api/compuesto', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                calcular: calcular,
-                monto: monto,
-                tasa: tasa,
-                capitalizacion: capitalizacion,
-                tiempo: tiempo
-            })
+            body: JSON.stringify({ calcular, monto, tasa, tasa_tipo: tipo, tasa_periodo: periodo, tasa_modalidad: modalidad, tiempo })
         });
-
         const data = await response.json();
-
         if(data.exito) {
-            let textoResultado = calcular === 'vf' ? 'Valor Futuro (Monto final)' : 'Valor Presente (Capital a colocar)';
-            
+            let texto = calcular === 'vf' ? 'Valor Futuro' : 'Valor Presente (Capital)';
             resultadoBox.innerHTML = `
-                <strong>Resultado del Cálculo:</strong> <br> 
-                ${textoResultado}: <b>$${data.resultado.toLocaleString('es-CO')}</b> <br><br>
-                <small>Detalles: Tasa periódica = ${(data.tasa_periodica * 100).toFixed(4)}% | Total de periodos = ${data.periodos}</small>
+                <strong>Resultado:</strong> <br> 
+                ${texto}: <b>$${data.resultado.toLocaleString('es-CO')}</b> <br><br>
+                <small>Tasa Efectiva Anual (EA) usada: ${data.tasa_ea}%</small>
             `;
             resultadoBox.classList.remove('hidden');
-        } else {
-            alert("Error: " + data.error);
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Error conectando con el backend.");
-    }
+        } else { alert("Error: " + data.error); }
+    } catch (error) { alert("Error de conexión"); }
 }
-
-// ... (código anterior de simple, tasas y compuesto se mantiene igual) ...
 
 // --- SIMULADOR DE PRÉSTAMOS ---
 async function simularPrestamo() {
     const monto = document.getElementById('pres-monto').value;
     const tasa = document.getElementById('pres-tasa').value;
+    const tipo = document.getElementById('pres-tipo').value;
+    const periodo = document.getElementById('pres-periodo').value;
+    const modalidad = document.getElementById('pres-modalidad').value;
+    const frecuencia = document.getElementById('pres-frecuencia').value; // Captura el valor
     const plazo = document.getElementById('pres-plazo').value;
+    
     const resultadoBox = document.getElementById('resultado-prestamos');
     const tbody = document.getElementById('tbody-amortizacion');
     
@@ -161,21 +128,18 @@ async function simularPrestamo() {
         const response = await fetch('/api/prestamos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ monto, tasa, plazo })
+            body: JSON.stringify({ 
+                monto: monto, tasa: tasa, tasa_tipo: tipo, tasa_periodo: periodo, 
+                tasa_modalidad: modalidad, frecuencia_pago: frecuencia, plazo: plazo 
+            })
         });
-
         const data = await response.json();
-
         if(data.exito) {
-            // 1. Mostrar el resumen
             document.getElementById('pres-resumen').innerHTML = `
-                Cuota Mensual Fija: <span style="color: #2e7d32; font-size: 1.2rem;">$${data.cuota_fija.toLocaleString('es-CO')}</span>
+                Cuota Fija: <span style="color: #2e7d32; font-size: 1.2rem;">$${data.cuota_fija.toLocaleString('es-CO')}</span><br>
+                <small>Tasa periódica aplicada a la tabla: ${data.tasa_periodica_aplicada}%</small>
             `;
-
-            // 2. Limpiar la tabla anterior
             tbody.innerHTML = '';
-
-            // 3. Llenar la tabla con los datos de Python
             data.tabla.forEach(fila => {
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid #eee';
@@ -188,13 +152,7 @@ async function simularPrestamo() {
                 `;
                 tbody.appendChild(tr);
             });
-
             resultadoBox.classList.remove('hidden');
-        } else {
-            alert("Error: " + data.error);
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Error conectando con el backend.");
-    }
+        } else { alert("Error: " + data.error); }
+    } catch (error) { alert("Error de conexión"); }
 }

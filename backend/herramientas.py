@@ -17,7 +17,7 @@ def conversion_tasas(origen_valor, origen_tipo, origen_periodo, origen_modalidad
     else:
         tasa_periodica_vencida = tasa_periodica
 
-    # 3. Llevar la tasa periódica vencida a Tasa Efectiva Anual (EA) Vencida
+    # 3. Llevar la tasa periódica vencida a Tasa Efectiva Anual (EA)
     tasa_ea = ((1 + tasa_periodica_vencida) ** origen_periodo) - 1
 
     # 4. Convertir la EA a la Tasa Destino Periódica VENCIDA
