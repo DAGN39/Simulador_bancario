@@ -53,6 +53,18 @@ header h1 {
     letter-spacing: 0.5px;
 }
 
+header .logo-ud {
+    width: 80px;
+    height: auto;
+    margin-bottom: 0.75rem;
+}
+
+header p.autores {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
 header p { 
     color: var(--color-2); /* Turquesa claro para el subtítulo */
     font-size: 1rem; 
