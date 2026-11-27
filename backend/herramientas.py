@@ -10,6 +10,8 @@ def conversion_tasas(origen_valor, origen_tipo, origen_periodo, origen_modalidad
 
     # 2. Convertir a Vencida (si es anticipada)
     if origen_modalidad == 'anticipada':
+        if tasa_periodica >= 1:
+            raise ValueError('Una tasa anticipada por periodo debe ser menor al 100%.')
         tasa_periodica_vencida = tasa_periodica / (1 - tasa_periodica)
     else:
         tasa_periodica_vencida = tasa_periodica

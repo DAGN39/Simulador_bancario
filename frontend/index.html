@@ -19,20 +19,28 @@
             <button class="tab-btn" data-target="simple">Interés Simple</button>
             <button class="tab-btn" data-target="compuesto">Interés Compuesto</button>
             <button class="tab-btn" data-target="prestamos">Simulador de Préstamos</button>
+            <button class="tab-btn" data-target="anualidades">Anualidades</button>
             <button class="tab-btn" data-target="descuento">Descuento Bancario</button>
+            <button class="tab-btn" data-target="ayuda">Ayuda</button>
         </nav>
 
         <main>
             <!-- MÓDULO 1: TASAS -->
             <section id="tasas" class="tab-content active">
                 <h2>Conversión de Tasas de Interés</h2>
+                <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
+<p>Convierte una tasa de interés de una forma a otra equivalente. Por ejemplo, pasar un 24% nominal mensual vencido a una efectiva anual.</p>
+<ul><li><b>Efectiva:</b> el interés ya incluye la capitalización; es la que realmente pagas en ese periodo.</li>
+<li><b>Nominal:</b> tasa anual que se capitaliza varias veces al año (se reparte entre los periodos).</li>
+<li><b>Vencida / anticipada:</b> el interés se cobra al final del periodo (vencida) o al comienzo (anticipada).</li></ul>
+<p>Siempre se muestra también la tasa efectiva anual (EA) equivalente, para comparar.</p></details>
                 <form id="form-tasas">
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 250px;">
                             <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Tasa Origen</h3>
                             <div class="input-group">
                                 <label>Valor (%):</label>
-                                <input type="number" id="tasas-origen-valor" step="0.0001" placeholder="Ej: 24" required>
+                                <input type="number" id="tasas-origen-valor" min="0.0001" step="0.0001" placeholder="Ej: 24" required>
                             </div>
                             <div class="input-group">
                                 <label>Tipo:</label>
@@ -96,6 +104,11 @@
             <!-- MÓDULO 2: INTERÉS SIMPLE -->
             <section id="simple" class="tab-content">
                 <h2>Interés Simple</h2>
+                <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
+<p>En el interés simple los intereses se calculan siempre sobre el capital inicial: <b>I = VP × i × t</b>. La tasa y el tiempo deben estar en la misma unidad; aquí el simulador convierte el tiempo por ti.</p>
+<ul><li><b>Periodo de la tasa:</b> a qué lapso corresponde el porcentaje (3% mensual, 12% anual, etc.).</li>
+<li><b>Comercial (360) / Racional (365):</b> cuántos días se asume que tiene el año al trabajar con días.</li>
+<li>Al calcular la <b>tasa</b> el resultado es anual; al calcular el <b>tiempo</b>, se muestra en años.</li></ul></details>
                 <form id="form-simple">
                     <div class="input-group">
                         <label>¿Qué deseas calcular?</label>
@@ -110,24 +123,25 @@
 
                     <div id="group-simple-vp" class="input-group">
                         <label>Capital Inicial / Valor Presente ($):</label>
-                        <input type="number" id="simple-vp" step="0.01" placeholder="Ej: 1000000">
+                        <input type="number" id="simple-vp" min="0.01" step="0.01" placeholder="Ej: 1000000">
                     </div>
                     
                     <div id="group-simple-vf" class="input-group" style="display: none;">
                         <label>Monto Final / Valor Futuro ($):</label>
-                        <input type="number" id="simple-vf" step="0.01" placeholder="Ej: 1500000">
+                        <input type="number" id="simple-vf" min="0.01" step="0.01" placeholder="Ej: 1500000">
                     </div>
 
                     <div id="group-simple-tasa" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <div class="input-group" style="flex: 1;">
                             <label>Tasa de Interés (%):</label>
-                            <input type="number" id="simple-tasa" step="0.01" placeholder="Ej: 3">
+                            <input type="number" id="simple-tasa" min="0.0001" step="0.01" placeholder="Ej: 3">
                         </div>
                         <div class="input-group" style="flex: 1;">
                             <label>Periodo de la Tasa:</label>
                             <select id="simple-tasa-unidad">
                                 <option value="1">Anual</option>
                                 <option value="2">Semestral</option>
+                                <option value="3">Cuatrimestral</option>
                                 <option value="4">Trimestral</option>
                                 <option value="12">Mensual</option>
                                 <option value="360">Diario (Comercial)</option>
@@ -139,7 +153,7 @@
                     <div id="group-simple-tiempo" class="input-group" style="display: flex; gap: 0.5rem;">
                         <div style="flex: 2;">
                             <label>Tiempo:</label>
-                            <input type="number" id="simple-tiempo" step="0.01" placeholder="Ej: 3.5">
+                            <input type="number" id="simple-tiempo" min="0.0001" step="0.01" placeholder="Ej: 3.5">
                         </div>
                         <div style="flex: 1;">
                             <label>Unidad Tiempo:</label>
@@ -163,6 +177,10 @@
             <!-- MÓDULO 3: INTERÉS COMPUESTO -->
             <section id="compuesto" class="tab-content">
                 <h2>Interés Compuesto</h2>
+                <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
+<p>En el interés compuesto los intereses ganan intereses: <b>VF = VP × (1 + i)^n</b>. La tasa que ingresas se convierte internamente a efectiva anual, así que puedes digitarla en cualquier forma (nominal, efectiva, vencida, anticipada).</p>
+<ul><li><b>Valor futuro:</b> cuánto tendrás al final. <b>Valor presente:</b> cuánto vale hoy un monto futuro.</li>
+<li>Al calcular la <b>tasa</b> puedes elegir en qué forma quieres el resultado (por ejemplo, nominal mensual).</li></ul></details>
                 <form id="form-compuesto">
                     <div class="input-group">
                         <label>¿Qué deseas calcular?</label>
@@ -176,21 +194,21 @@
 
                     <div id="group-comp-monto" class="input-group">
                         <label id="lbl-comp-monto">Monto / Capital ($):</label>
-                        <input type="number" id="comp-monto" step="0.01" placeholder="Ej: 20000">
+                        <input type="number" id="comp-monto" min="0.01" step="0.01" placeholder="Ej: 20000">
                     </div>
                     <div id="group-comp-vp" class="input-group" style="display: none;">
                         <label>Capital Inicial ($):</label>
-                        <input type="number" id="comp-vp" step="0.01" placeholder="Ej: 10000">
+                        <input type="number" id="comp-vp" min="0.01" step="0.01" placeholder="Ej: 10000">
                     </div>
                     <div id="group-comp-vf" class="input-group" style="display: none;">
                         <label>Monto Final ($):</label>
-                        <input type="number" id="comp-vf" step="0.01" placeholder="Ej: 12500">
+                        <input type="number" id="comp-vf" min="0.01" step="0.01" placeholder="Ej: 12500">
                     </div>
 
                     <div id="group-comp-tasa" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Tasa de Interés (%):</label>
-                            <input type="number" id="comp-tasa" step="0.01" placeholder="Ej: 15">
+                            <input type="number" id="comp-tasa" min="0.0001" step="0.01" placeholder="Ej: 15">
                         </div>
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Tipo:</label>
@@ -231,6 +249,7 @@
                             <select id="comp-res-periodo">
                                 <option value="1">Anual</option>
                                 <option value="2">Semestral</option>
+                                <option value="3">Cuatrimestral</option>
                                 <option value="4">Trimestral</option>
                                 <option value="12">Mensual</option>
                             </select>
@@ -240,7 +259,7 @@
                     <div id="group-comp-tiempo" class="input-group" style="display: flex; gap: 0.5rem;">
                         <div style="flex: 2;">
                             <label>Tiempo:</label>
-                            <input type="number" id="comp-tiempo" step="0.01" placeholder="Ej: 36">
+                            <input type="number" id="comp-tiempo" min="0.0001" step="0.01" placeholder="Ej: 36">
                         </div>
                         <div style="flex: 1;">
                             <label>Unidad:</label>
@@ -262,22 +281,30 @@
             <!-- MÓDULO 4: PRÉSTAMOS -->
             <section id="prestamos" class="tab-content">
                 <h2>Simulación de Crédito</h2>
-                <form id="form-prestamos">
+                <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
+                <p>Genera la tabla de amortización de un crédito con cuota fija. Llena los datos básicos y, si quieres, activa las opciones avanzadas.</p>
+                <ul>
+                    <li><b>Modalidad de la tasa:</b> cómo viene expresada la tasa del banco (vencida o anticipada). Solo cambia el cálculo de la tasa.</li>
+                    <li><b>Pago de las cuotas:</b> <i>vencido</i> = pagas al final de cada periodo. <i>Anticipado</i> = pagas al inicio; el primer pago es en el periodo 0 y no genera interés, y el saldo baja desde el comienzo.</li>
+                    <li><b>Periodo de gracia:</b> los primeros periodos en los que no amortizas capital. <i>Solo intereses</i>: pagas únicamente el interés. <i>Interés capitalizado</i>: no pagas nada y el interés se suma a la deuda.</li>
+                    <li><b>Abono extra a capital:</b> un pago adicional en una cuota. <i>Reducir tiempo</i>: sigues pagando la misma cuota pero terminas antes. <i>Reducir cuota</i>: mantienes el plazo y la cuota baja.</li>
+                </ul></details>
+                <form id="form-prestamos" onsubmit="return false;">
                     <div class="input-group">
                         <label>Monto del Préstamo ($):</label>
-                        <input type="number" id="pres-monto" step="0.01" placeholder="Ej: 2400000" required>
+                        <input type="number" id="pres-monto" min="0.01" step="0.01" placeholder="Ej: 200000000" required>
                     </div>
-                    
+
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Tasa de Interés (%):</label>
-                            <input type="number" id="pres-tasa" step="0.01" placeholder="Ej: 36" required>
+                            <input type="number" id="pres-tasa" min="0.0001" step="0.01" placeholder="Ej: 24.96" required>
                         </div>
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Tipo:</label>
                             <select id="pres-tipo">
-                                <option value="nominal">Nominal</option>
                                 <option value="efectiva">Efectiva</option>
+                                <option value="nominal">Nominal</option>
                             </select>
                         </div>
                         <div class="input-group" style="flex: 1; min-width: 200px;">
@@ -291,7 +318,7 @@
                             </select>
                         </div>
                         <div class="input-group" style="flex: 1; min-width: 200px;">
-                            <label>Modalidad:</label>
+                            <label>Modalidad de la tasa:</label>
                             <select id="pres-modalidad">
                                 <option value="vencida">Vencida</option>
                                 <option value="anticipada">Anticipada</option>
@@ -300,36 +327,77 @@
                     </div>
 
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Frecuencia de Pago:</label>
                             <select id="pres-frecuencia">
                                 <option value="12">Mensual</option>
+                                <option value="6">Bimestral</option>
                                 <option value="4">Trimestral</option>
                                 <option value="3">Cuatrimestral</option>
                                 <option value="2">Semestral</option>
                                 <option value="1">Anual</option>
                             </select>
                         </div>
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Número de Cuotas (Plazo):</label>
-                            <input type="number" id="pres-plazo" placeholder="Ej: 9" required>
+                            <input type="number" id="pres-plazo" min="1" max="600" step="1" placeholder="Ej: 24" required>
+                            <span class="ayuda">Entero entre 1 y 600. Incluye los periodos de gracia.</span>
                         </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Pago de las cuotas:</label>
+                            <select id="pres-tipo-pago" onchange="toggleGracia()">
+                                <option value="vencido">Vencido (fin del periodo)</option>
+                                <option value="anticipado">Anticipado (inicio, periodo 0)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bloque-opcional">
+                        <h3>Periodo de gracia (opcional)</h3>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <div class="input-group" style="flex: 1; min-width: 200px;">
+                                <label>Periodos de gracia:</label>
+                                <input type="number" id="pres-gracia" min="0" step="1" value="0">
+                                <span class="ayuda">0 = sin gracia. Solo disponible con pago vencido.</span>
+                            </div>
+                            <div class="input-group" style="flex: 1; min-width: 200px;">
+                                <label>Tipo de gracia:</label>
+                                <select id="pres-tipo-gracia">
+                                    <option value="parcial">Solo intereses</option>
+                                    <option value="total">Interés capitalizado (no pago nada)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bloque-opcional">
+                        <h3>Abonos extra a capital (opcional)</h3>
+                        <div class="input-group">
+                            <label>Con el abono quiero:</label>
+                            <select id="pres-modo-abono">
+                                <option value="plazo">Reducir el tiempo (misma cuota)</option>
+                                <option value="cuota">Reducir la cuota (mismo plazo)</option>
+                            </select>
+                        </div>
+                        <div id="abonos-lista"></div>
+                        <button type="button" class="btn-secundario" onclick="agregarAbono()">+ Agregar abono</button>
                     </div>
 
                     <button type="button" class="btn-calcular" onclick="simularPrestamo()">Generar Tabla</button>
                 </form>
-                
+
                 <div id="resultado-prestamos" class="resultado-box hidden">
-                    <h3 id="pres-resumen" style="margin-bottom: 1rem; color: var(--color-5);"></h3>
-                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--color-2); border-radius: 8px;">
-                        <table id="tabla-amortizacion" style="width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem;">
+                    <h3 id="pres-resumen" style="margin-bottom: 1rem; color: var(--color-5); line-height: 1.7;"></h3>
+                    <div style="max-height: 400px; overflow: auto; border: 1px solid var(--color-2); border-radius: 8px;">
+                        <table id="tabla-amortizacion" class="tabla-amort" style="width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem;">
                             <thead style="background-color: var(--color-1); position: sticky; top: 0; z-index: 1;">
                                 <tr>
-                                    <th style="padding: 10px; text-align: center;">Cuota</th>
-                                    <th style="padding: 10px;">Pago</th>
-                                    <th style="padding: 10px;">Interés</th>
-                                    <th style="padding: 10px;">Abono Capital</th>
-                                    <th style="padding: 10px;">Saldo</th>
+                                    <th style="text-align: center;">Periodo</th>
+                                    <th>Pago</th>
+                                    <th>Interés</th>
+                                    <th>Abono Capital</th>
+                                    <th>Abono Extra</th>
+                                    <th>Saldo</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-amortizacion"></tbody>
@@ -338,16 +406,119 @@
                 </div>
             </section>
 
+            <!-- MÓDULO: ANUALIDADES -->
+            <section id="anualidades" class="tab-content">
+                <h2>Anualidades</h2>
+                <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
+                <p>Una anualidad es una serie de pagos iguales y periódicos (arriendo, cuotas, ahorros programados). Aquí puedes calcular su valor hoy, su valor acumulado al final o el pago periódico.</p>
+                <ul>
+                    <li><b>Valor presente (VP):</b> cuánto vale hoy toda la serie de pagos. <b>Valor futuro (VF):</b> cuánto se acumula justo después del último pago.</li>
+                    <li><b>Vencida:</b> cada pago se hace al final del periodo. <b>Anticipada:</b> se hace al inicio (el primer pago es hoy); el valor se multiplica por (1+i).</li>
+                    <li><b>Diferida:</b> los pagos empiezan después de unos periodos de espera. Se descuenta ese tiempo extra con (1+i)^−k. Aplica al valor presente.</li>
+                    <li><b>General:</b> si la tasa se capitaliza con una frecuencia distinta a la de los pagos (por ejemplo, tasa nominal mensual con pagos trimestrales), el simulador convierte la tasa por ti a una efectiva por periodo de pago.</li>
+                </ul></details>
+                <form id="form-anualidades" onsubmit="return false;">
+                    <div class="input-group">
+                        <label>¿Qué deseas calcular?</label>
+                        <select id="anu-calcular" onchange="toggleAnualidadFields()">
+                            <option value="vp">Valor Presente (cuánto vale hoy la serie de pagos)</option>
+                            <option value="vf">Valor Futuro (cuánto acumulo al final)</option>
+                            <option value="pago_vp">Pago periódico, conociendo el Valor Presente</option>
+                            <option value="pago_vf">Pago periódico, conociendo el Valor Futuro</option>
+                        </select>
+                    </div>
+
+                    <div id="group-anu-pago" class="input-group">
+                        <label>Pago periódico A ($):</label>
+                        <input type="number" id="anu-pago" min="0.01" step="0.01" placeholder="Ej: 1000000">
+                        <span class="ayuda">El valor de cada pago (por ejemplo, el arriendo mensual).</span>
+                    </div>
+                    <div id="group-anu-valor" class="input-group" style="display: none;">
+                        <label id="lbl-anu-valor">Valor Presente ($):</label>
+                        <input type="number" id="anu-valor" min="0.01" step="0.01" placeholder="Ej: 11255077">
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Número de pagos (n):</label>
+                            <input type="number" id="anu-n" min="1" max="1200" step="1" placeholder="Ej: 12">
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Frecuencia de los pagos:</label>
+                            <select id="anu-frecuencia">
+                                <option value="12">Mensual</option>
+                                <option value="6">Bimestral</option>
+                                <option value="4">Trimestral</option>
+                                <option value="3">Cuatrimestral</option>
+                                <option value="2">Semestral</option>
+                                <option value="1">Anual</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Tipo de anualidad:</label>
+                            <select id="anu-tipo-pago">
+                                <option value="vencida">Vencida (pago al final)</option>
+                                <option value="anticipada">Anticipada (pago al inicio)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Tasa de Interés (%):</label>
+                            <input type="number" id="anu-tasa" min="0.0001" step="0.01" placeholder="Ej: 12">
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Tipo:</label>
+                            <select id="anu-tipo">
+                                <option value="nominal">Nominal</option>
+                                <option value="efectiva">Efectiva</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Periodo / Capitalización:</label>
+                            <select id="anu-periodo">
+                                <option value="1">Anual</option>
+                                <option value="2">Semestral</option>
+                                <option value="3">Cuatrimestral</option>
+                                <option value="4">Trimestral</option>
+                                <option value="12" selected>Mensual</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Modalidad de la tasa:</label>
+                            <select id="anu-modalidad">
+                                <option value="vencida">Vencida</option>
+                                <option value="anticipada">Anticipada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="group-anu-dif" class="input-group">
+                        <label>Periodos de diferimiento (k):</label>
+                        <input type="number" id="anu-diferimiento" min="0" step="1" value="0">
+                        <span class="ayuda">Periodos de pago que pasan antes de que empiece la anualidad. 0 = no es diferida.</span>
+                    </div>
+
+                    <button type="button" class="btn-calcular" onclick="simularAnualidad()">Calcular</button>
+                </form>
+                <div id="resultado-anualidades" class="resultado-box hidden"></div>
+            </section>
+
             <!-- MÓDULO 5: DESCUENTO BANCARIO -->
             <section id="descuento" class="tab-content">
                 <h2>Descuento Bancario</h2>
+                <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
+<p>Sirve cuando un documento (pagaré, letra) se vende al banco antes de su vencimiento. Primero se calcula cuánto valdrá el documento al vencer (con su tasa de interés) y luego el banco le aplica su tasa de descuento por los días que faltan.</p>
+<ul><li><b>Fecha de descuento:</b> el día en que se vende el documento; debe estar entre la emisión y el vencimiento.</li>
+<li><b>Valor de la transacción:</b> lo que realmente recibes hoy.</li></ul></details>
                 <form id="form-descuento">
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <div class="input-group" style="flex: 1; min-width: 250px;">
                             <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Documento Original</h3>
                             <div class="input-group">
                                 <label>Valor Inicial ($):</label>
-                                <input type="number" id="desc-valor-inicial" placeholder="Ej: 70000" required>
+                                <input type="number" id="desc-valor-inicial" min="0.01" placeholder="Ej: 70000" required>
                             </div>
                             <div class="input-group">
                                 <label>Fecha de Emisión (Inicio):</label>
@@ -355,11 +526,11 @@
                             </div>
                             <div class="input-group">
                                 <label>Plazo (Días):</label>
-                                <input type="number" id="desc-plazo-dias" placeholder="Ej: 325" required>
+                                <input type="number" id="desc-plazo-dias" min="1" placeholder="Ej: 325" required>
                             </div>
                             <div class="input-group">
                                 <label>Tasa de Interés (%):</label>
-                                <input type="number" id="desc-tasa-interes" step="0.01" placeholder="Ej: 32" required>
+                                <input type="number" id="desc-tasa-interes" min="0.0001" step="0.01" placeholder="Ej: 32" required>
                             </div>
                         </div>
 
@@ -371,7 +542,7 @@
                             </div>
                             <div class="input-group">
                                 <label>Tasa de Descuento (%):</label>
-                                <input type="number" id="desc-tasa-descuento" step="0.01" placeholder="Ej: 40" required>
+                                <input type="number" id="desc-tasa-descuento" min="0.0001" step="0.01" placeholder="Ej: 40" required>
                             </div>
                             <div class="input-group">
                                 <label>Base de Días:</label>
@@ -385,6 +556,26 @@
                     <button type="button" class="btn-calcular" onclick="simularDescuento()">Calcular Descuento</button>
                 </form>
                 <div id="resultado-descuento" class="resultado-box hidden"></div>
+            </section>
+                    <!-- AYUDA -->
+            <section id="ayuda" class="tab-content">
+                <h2>Ayuda y glosario</h2>
+                <p style="line-height: 1.6; margin-bottom: 1rem;">Si no conoces el tema, empieza por aquí. Cada módulo tiene además una guía desplegable bajo su título ("¿Cómo funciona este módulo?").</p>
+                <dl class="glosario">
+                    <dt>Valor presente (VP)</dt><dd>Lo que vale hoy un dinero que recibirás o pagarás en el futuro.</dd>
+                    <dt>Valor futuro (VF)</dt><dd>Lo que valdrá en el futuro un dinero de hoy, con sus intereses.</dd>
+                    <dt>Tasa efectiva</dt><dd>La tasa que realmente se paga en el periodo indicado, ya con la capitalización incluida.</dd>
+                    <dt>Tasa nominal</dt><dd>Tasa anual que se reparte entre varios periodos de capitalización (ej. 24% nominal mensual = 2% cada mes).</dd>
+                    <dt>Vencida / Anticipada</dt><dd>Si el interés (o el pago) se hace al final del periodo (vencida) o al comienzo (anticipada).</dd>
+                    <dt>EA</dt><dd>Efectiva anual. Sirve para comparar tasas de distinta forma.</dd>
+                    <dt>Amortización</dt><dd>Parte de cada cuota que reduce la deuda (abono a capital). El resto de la cuota son intereses.</dd>
+                    <dt>Periodo de gracia</dt><dd>Periodos iniciales de un crédito en los que no se paga capital.</dd>
+                    <dt>Abono extra a capital</dt><dd>Pago adicional que reduce directamente la deuda; ahorra intereses.</dd>
+                    <dt>Anualidad</dt><dd>Serie de pagos iguales a intervalos iguales de tiempo.</dd>
+                    <dt>Anualidad diferida</dt><dd>Anualidad cuyos pagos empiezan después de un tiempo de espera.</dd>
+                    <dt>Anualidad general</dt><dd>Anualidad en la que la frecuencia de pagos no coincide con la de capitalización de la tasa.</dd>
+                    <dt>Descuento bancario</dt><dd>Venta de un documento al banco antes de su vencimiento, a cambio de recibir menos dinero hoy.</dd>
+                </dl>
             </section>
         </main>
     </div>

@@ -170,3 +170,54 @@ h2 {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+/* ---- Errores, ayuda y nuevos componentes ---- */
+.resultado-box.error {
+    background-color: #fff5f5;
+    border: 1px solid #f5c2c2;
+    border-left: 5px solid #d32f2f;
+    color: #8a1c1c;
+}
+.ayuda {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+details.ayuda-modulo {
+    margin-bottom: 1.5rem;
+    background-color: var(--color-1);
+    border: 1px solid var(--color-2);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+details.ayuda-modulo summary { cursor: pointer; font-weight: 600; color: var(--color-5); }
+details.ayuda-modulo p, details.ayuda-modulo ul { margin-top: 0.6rem; }
+details.ayuda-modulo ul { padding-left: 1.2rem; }
+.bloque-opcional {
+    margin: 1.2rem 0 0.4rem;
+    padding: 1rem;
+    border: 1px dashed var(--color-2);
+    border-radius: 8px;
+}
+.bloque-opcional h3 { color: var(--color-4); font-size: 1.05rem; margin-bottom: 0.8rem; }
+.abono-fila { display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.6rem; flex-wrap: wrap; }
+.abono-fila .input-group { margin-bottom: 0; flex: 1; min-width: 140px; }
+.btn-secundario {
+    padding: 0.6rem 1rem;
+    background: white;
+    color: var(--color-4);
+    border: 1.5px solid var(--color-3);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-secundario:hover { background-color: var(--color-1); }
+.tabla-amort th { padding: 10px; }
+.tabla-amort td { padding: 8px; }
+.nota-fila { display: block; font-size: 0.7rem; color: var(--color-4); font-weight: 400; }
+.glosario dt { font-weight: 600; margin-top: 0.9rem; color: var(--color-5); }
+.glosario dd { margin-left: 0; line-height: 1.55; }
