@@ -288,6 +288,7 @@
                 <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
                 <p>Genera la tabla de amortización de un crédito. Llena los datos básicos y, si quieres, activa las opciones avanzadas.</p>
                 <ul>
+                    <li><b>% a financiar:</b> si solo te prestan una parte del valor (por ejemplo, el 60 % de una moto de $4.000.000), escribe el valor total y el porcentaje; el simulador calcula el monto financiado ($2.400.000) y la cuota inicial que pones tú.</li>
                     <li><b>Modalidad de la tasa:</b> cómo viene expresada la tasa del banco (vencida o anticipada). Solo cambia el cálculo de la tasa.</li>
                     <li><b>Pago de las cuotas:</b> <i>vencido</i> = pagas al final de cada periodo. <i>Anticipado</i> = pagas al inicio; el primer pago es en el periodo 0 y no genera interés, y el saldo baja desde el comienzo.</li>
                     <li><b>Sistema de cuotas:</b> <i>fija</i> = todas las cuotas son iguales (anualidad). <i>Variable</i> = en cada cuota amortizas el mismo capital (deuda ÷ número de cuotas) y pagas los intereses sobre el saldo, así que la primera cuota es la más alta y la cuota va bajando.</li>
@@ -296,9 +297,16 @@
                     <li><b>Abono extra a capital:</b> un pago adicional en una cuota. <i>Reducir tiempo</i>: sigues pagando la misma cuota pero terminas antes. <i>Reducir cuota</i>: mantienes el plazo y la cuota baja.</li>
                 </ul></details>
                 <form id="form-prestamos" onsubmit="return false;">
-                    <div class="input-group">
-                        <label>Monto del Préstamo ($):</label>
-                        <input type="number" id="pres-monto" min="0.01" step="0.01" placeholder="Ej: 200000000" required>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 2; min-width: 220px;">
+                            <label>Monto del préstamo o valor del bien ($):</label>
+                            <input type="number" id="pres-monto" min="0.01" step="0.01" placeholder="Ej: 200000000" required>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 170px;">
+                            <label>% a financiar (opcional):</label>
+                            <input type="number" id="pres-porcentaje" min="0.01" max="100" step="0.01" placeholder="100">
+                            <span class="ayuda">Vacío = se financia todo. Ej.: 60 para financiar el 60 % del valor.</span>
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">

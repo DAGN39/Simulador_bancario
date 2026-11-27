@@ -235,14 +235,16 @@ function leerAbonos() {
 function simularPrestamo() {
     const box = $('resultado-prestamos');
     return ejecutar(box, async () => {
-        const monto = leerNumero('pres-monto', 'Monto del préstamo');
+        const monto = leerNumero('pres-monto', 'Monto del préstamo o valor del bien');
+        const porcentajeTexto = $('pres-porcentaje').value.trim();
+        if (porcentajeTexto !== '') leerNumero('pres-porcentaje', '% a financiar', { max: 100 });
         const tasa = leerNumero('pres-tasa', 'Tasa de interés', { max: 1000 });
         const plazo = leerNumero('pres-plazo', 'Número de cuotas', { entero: true, max: 600 });
         const gracia = leerNumero('pres-gracia', 'Periodos de gracia', { entero: true, permitirCero: true });
         if (gracia >= plazo) throw new Error('Los periodos de gracia deben ser menos que el número de cuotas.');
 
         const data = await llamarApi('/api/prestamos', {
-            monto, tasa, tasa_tipo: $('pres-tipo').value, tasa_periodo: $('pres-periodo').value, tasa_modalidad: $('pres-modalidad').value,
+            monto, porcentaje_financiar: porcentajeTexto, tasa, tasa_tipo: $('pres-tipo').value, tasa_periodo: $('pres-periodo').value, tasa_modalidad: $('pres-modalidad').value,
             frecuencia_pago: $('pres-frecuencia').value, plazo,
             tipo_pago: $('pres-tipo-pago').value,
             gracia, tipo_gracia: $('pres-tipo-gracia').value,
@@ -261,6 +263,10 @@ function simularPrestamo() {
                 resumen += `<br>Cuota después de los abonos: <span style="color: #2e7d32; font-size: 1.2rem;">${dinero(data.cuota_final)}</span>`;
             }
         }
+        if (data.porcentaje_financiar < 100) {
+            resumen += `<br><small>Valor del bien: ${dinero(data.valor_bien)} · Financias el ${fmt(data.porcentaje_financiar, 2)} %: `
+                + `<b>${dinero(data.monto_financiado)}</b> · Cuota inicial (la pones tú): ${dinero(data.cuota_inicial)}</small>`;
+        }
         resumen += `<br><small>Plazo: ${data.plazo_meses} meses`
             + (data.edad_final !== undefined ? ` · Edad del titular: ${data.edad} años (al terminar: ${fmt(data.edad_final, 1)} años)` : '')
             + `</small>`;
@@ -278,7 +284,7 @@ function simularPrestamo() {
             tr0.innerHTML = `
                 <td style="text-align: center;">0<span class="nota-fila">Desembolso (hoy)</span></td>
                 <td>—</td><td>—</td><td>—</td><td>—</td>
-                <td style="font-weight: 600;">${dinero(monto)}</td>`;
+                <td style="font-weight: 600;">${dinero(data.monto_financiado)}</td>`;
             tbody.appendChild(tr0);
         }
         data.tabla.forEach(f => {
@@ -387,7 +393,7 @@ const EJEMPLOS = {
     prestamos: {
         texto: 'Crédito de $200.000.000 al 24,96 % efectiva anual en 24 cuotas mensuales, con un abono de $38.000.000 en la cuota 8 que reduce el tiempo. Resultado esperado: cuota $10.424.140,47 y 20 pagos (sin el abono serían 24).',
         cargar() {
-            fijar({ 'pres-monto': 200000000, 'pres-tasa': 24.96, 'pres-tipo': 'efectiva', 'pres-periodo': '1', 'pres-modalidad': 'vencida',
+            fijar({ 'pres-monto': 200000000, 'pres-porcentaje': '', 'pres-tasa': 24.96, 'pres-tipo': 'efectiva', 'pres-periodo': '1', 'pres-modalidad': 'vencida',
                     'pres-frecuencia': '12', 'pres-plazo': 24, 'pres-tipo-pago': 'vencido', 'pres-gracia': 0, 'pres-tipo-gracia': 'parcial',
                     'pres-sistema': 'fija', 'pres-edad': '', 'pres-plazo-minimo': '', 'pres-modo-abono': 'plazo' });
             toggleGracia();

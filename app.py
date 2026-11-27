@@ -236,7 +236,12 @@ def api_interes_compuesto():
 def api_prestamos():
     datos = request.get_json(silent=True) or {}
     try:
-        monto = numero(datos, 'monto', 'Monto del préstamo', maximo=MAX_MONTO)
+        valor_bien = numero(datos, 'monto', 'Monto del préstamo o valor del bien', maximo=MAX_MONTO)
+        # Opcional: si solo se financia una parte del valor (por ejemplo, el 60 % de una moto)
+        porcentaje = 100.0
+        if datos.get('porcentaje_financiar') not in (None, ''):
+            porcentaje = numero(datos, 'porcentaje_financiar', '% a financiar', maximo=100)
+        monto = valor_bien * porcentaje / 100
         frecuencia = periodo_valido(datos, 'frecuencia_pago', 'Frecuencia de pago', FRECUENCIAS_PAGO)
         plazo = numero(datos, 'plazo', 'Número de cuotas', maximo=MAX_CUOTAS, entero=True)
         gracia = numero(datos, 'gracia', 'Periodos de gracia', maximo=MAX_CUOTAS, entero=True,
@@ -275,6 +280,10 @@ def api_prestamos():
             abonos=abonos, modo_abono=datos.get('modo_abono', 'plazo'), sistema=sistema)
         res['tasa_periodica_aplicada'] = round(tasa_periodica * 100, 4)
         res['plazo_meses'] = plazo_meses
+        res['valor_bien'] = round(valor_bien, 2)
+        res['porcentaje_financiar'] = porcentaje
+        res['monto_financiado'] = round(monto, 2)
+        res['cuota_inicial'] = round(valor_bien - monto, 2)
         if edad is not None:
             res['edad'] = edad
             res['edad_final'] = round(edad + plazo_meses / 12, 1)
