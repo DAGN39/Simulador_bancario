@@ -271,6 +271,16 @@ function simularPrestamo() {
 
         const tbody = $('tbody-amortizacion');
         tbody.innerHTML = '';
+        // Con pago vencido la tabla arranca en el periodo 0: el día del desembolso, sin cuota ni intereses
+        if (data.tabla.length && data.tabla[0].periodo === 1) {
+            const tr0 = document.createElement('tr');
+            tr0.style.borderBottom = '1px solid #eee';
+            tr0.innerHTML = `
+                <td style="text-align: center;">0<span class="nota-fila">Desembolso (hoy)</span></td>
+                <td>—</td><td>—</td><td>—</td><td>—</td>
+                <td style="font-weight: 600;">${dinero(monto)}</td>`;
+            tbody.appendChild(tr0);
+        }
         data.tabla.forEach(f => {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #eee';
