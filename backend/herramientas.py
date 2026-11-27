@@ -2,9 +2,6 @@
 
 def conversion_tasas(origen_valor, origen_tipo, origen_periodo, origen_modalidad, 
                      destino_tipo, destino_periodo, destino_modalidad):
-    """
-    Convierte cualquier tasa a otra, manejando modalidad Vencida y Anticipada.
-    """
     # 1. Obtener la tasa periódica de origen
     if origen_tipo == 'nominal':
         tasa_periodica = origen_valor / origen_periodo

@@ -1,9 +1,6 @@
 # backend/prestamos.py
 
 def calcular_tabla_amortizacion(monto, tasa_periodica, plazo_cuotas):
-    """
-    Calcula la cuota fija y genera la tabla de amortización (Sistema Francés).
-    """
     if tasa_periodica > 0:
         cuota = monto * (tasa_periodica / (1 - (1 + tasa_periodica) ** (-plazo_cuotas)))
     else:
@@ -16,7 +13,6 @@ def calcular_tabla_amortizacion(monto, tasa_periodica, plazo_cuotas):
         interes = saldo * tasa_periodica
         abono_capital = cuota - interes
         
-        # El último mes ajustamos por posibles errores de redondeo
         if i == plazo_cuotas:
             abono_capital = saldo
             cuota_final = abono_capital + interes

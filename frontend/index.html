@@ -19,6 +19,7 @@
             <button class="tab-btn" data-target="simple">Interés Simple</button>
             <button class="tab-btn" data-target="compuesto">Interés Compuesto</button>
             <button class="tab-btn" data-target="prestamos">Simulador de Préstamos</button>
+            <button class="tab-btn" data-target="descuento">Descuento Bancario</button>
         </nav>
 
         <main>
@@ -97,17 +98,63 @@
                 <h2>Interés Simple</h2>
                 <form id="form-simple">
                     <div class="input-group">
-                        <label>Capital Inicial ($):</label>
-                        <input type="number" id="simple-capital" placeholder="Ej: 1000000" required>
+                        <label>¿Qué deseas calcular?</label>
+                        <select id="simple-calcular" onchange="toggleSimpleFields()">
+                            <option value="interes">Interés Generado</option>
+                            <option value="vf">Valor Futuro (Monto)</option>
+                            <option value="vp">Valor Presente (Capital)</option>
+                            <option value="tasa">Tasa de Interés</option>
+                            <option value="tiempo">Tiempo</option>
+                        </select>
                     </div>
-                    <div class="input-group">
-                        <label>Tasa de Interés Anual (%):</label>
-                        <input type="number" id="simple-tasa" step="0.01" placeholder="Ej: 15" required>
+
+                    <div id="group-simple-vp" class="input-group">
+                        <label>Capital Inicial / Valor Presente ($):</label>
+                        <input type="number" id="simple-vp" step="0.01" placeholder="Ej: 1000000">
                     </div>
-                    <div class="input-group">
-                        <label>Tiempo (en años):</label>
-                        <input type="number" id="simple-tiempo" step="0.01" placeholder="Ej: 2.5" required>
+                    
+                    <div id="group-simple-vf" class="input-group" style="display: none;">
+                        <label>Monto Final / Valor Futuro ($):</label>
+                        <input type="number" id="simple-vf" step="0.01" placeholder="Ej: 1500000">
                     </div>
+
+                    <div id="group-simple-tasa" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1;">
+                            <label>Tasa de Interés (%):</label>
+                            <input type="number" id="simple-tasa" step="0.01" placeholder="Ej: 3">
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <label>Periodo de la Tasa:</label>
+                            <select id="simple-tasa-unidad">
+                                <option value="1">Anual</option>
+                                <option value="2">Semestral</option>
+                                <option value="4">Trimestral</option>
+                                <option value="12">Mensual</option>
+                                <option value="360">Diario (Comercial)</option>
+                                <option value="365">Diario (Racional)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="group-simple-tiempo" class="input-group" style="display: flex; gap: 0.5rem;">
+                        <div style="flex: 2;">
+                            <label>Tiempo:</label>
+                            <input type="number" id="simple-tiempo" step="0.01" placeholder="Ej: 3.5">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Unidad Tiempo:</label>
+                            <select id="simple-tiempo-unidad">
+                                <option value="1">Años</option>
+                                <option value="2">Semestres</option>
+                                <option value="3">Cuatrimestres</option>
+                                <option value="4">Trimestres</option>
+                                <option value="12">Meses</option>
+                                <option value="360">Días (Comercial 360)</option>
+                                <option value="365">Días (Racional 365)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <button type="button" class="btn-calcular" onclick="simularSimple()">Calcular</button>
                 </form>
                 <div id="resultado-simple" class="resultado-box hidden"></div>
@@ -119,20 +166,31 @@
                 <form id="form-compuesto">
                     <div class="input-group">
                         <label>¿Qué deseas calcular?</label>
-                        <select id="comp-calcular">
+                        <select id="comp-calcular" onchange="toggleCompuestoFields()">
                             <option value="vf">Valor Futuro (Monto final)</option>
                             <option value="vp">Valor Presente (Capital inicial)</option>
+                            <option value="tasa">Tasa de Interés</option>
+                            <option value="tiempo">Tiempo</option>
                         </select>
                     </div>
-                    <div class="input-group">
+
+                    <div id="group-comp-monto" class="input-group">
                         <label id="lbl-comp-monto">Monto / Capital ($):</label>
-                        <input type="number" id="comp-monto" step="0.01" placeholder="Ej: 20000" required>
+                        <input type="number" id="comp-monto" step="0.01" placeholder="Ej: 20000">
                     </div>
-                    
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div id="group-comp-vp" class="input-group" style="display: none;">
+                        <label>Capital Inicial ($):</label>
+                        <input type="number" id="comp-vp" step="0.01" placeholder="Ej: 10000">
+                    </div>
+                    <div id="group-comp-vf" class="input-group" style="display: none;">
+                        <label>Monto Final ($):</label>
+                        <input type="number" id="comp-vf" step="0.01" placeholder="Ej: 12500">
+                    </div>
+
+                    <div id="group-comp-tasa" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Tasa de Interés (%):</label>
-                            <input type="number" id="comp-tasa" step="0.01" placeholder="Ej: 15" required>
+                            <input type="number" id="comp-tasa" step="0.01" placeholder="Ej: 15">
                         </div>
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Tipo:</label>
@@ -160,10 +218,42 @@
                         </div>
                     </div>
 
-                    <div class="input-group">
-                        <label>Tiempo (en años):</label>
-                        <input type="number" id="comp-tiempo" step="0.01" placeholder="Ej: 10" required>
+                    <div id="group-comp-res-tasa" style="display: none; gap: 1rem; flex-wrap: wrap; background-color: var(--color-1); padding: 1rem; border-radius: 8px;">
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Convertir Tasa Resultante a:</label>
+                            <select id="comp-res-tipo">
+                                <option value="efectiva">Efectiva</option>
+                                <option value="nominal">Nominal</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; min-width: 200px;">
+                            <label>Periodo:</label>
+                            <select id="comp-res-periodo">
+                                <option value="1">Anual</option>
+                                <option value="2">Semestral</option>
+                                <option value="4">Trimestral</option>
+                                <option value="12">Mensual</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <div id="group-comp-tiempo" class="input-group" style="display: flex; gap: 0.5rem;">
+                        <div style="flex: 2;">
+                            <label>Tiempo:</label>
+                            <input type="number" id="comp-tiempo" step="0.01" placeholder="Ej: 36">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Unidad:</label>
+                            <select id="comp-tiempo-unidad">
+                                <option value="1">Años</option>
+                                <option value="2">Semestres</option>
+                                <option value="3">Cuatrimestres</option>
+                                <option value="4">Trimestres</option>
+                                <option value="12">Meses</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <button type="button" class="btn-calcular" onclick="simularCompuesto()">Calcular</button>
                 </form>
                 <div id="resultado-compuesto" class="resultado-box hidden"></div>
@@ -246,6 +336,55 @@
                         </table>
                     </div>
                 </div>
+            </section>
+
+            <!-- MÓDULO 5: DESCUENTO BANCARIO -->
+            <section id="descuento" class="tab-content">
+                <h2>Descuento Bancario</h2>
+                <form id="form-descuento">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="input-group" style="flex: 1; min-width: 250px;">
+                            <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Documento Original</h3>
+                            <div class="input-group">
+                                <label>Valor Inicial ($):</label>
+                                <input type="number" id="desc-valor-inicial" placeholder="Ej: 70000" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Fecha de Emisión (Inicio):</label>
+                                <input type="date" id="desc-fecha-inicio" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Plazo (Días):</label>
+                                <input type="number" id="desc-plazo-dias" placeholder="Ej: 325" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Tasa de Interés (%):</label>
+                                <input type="number" id="desc-tasa-interes" step="0.01" placeholder="Ej: 32" required>
+                            </div>
+                        </div>
+
+                        <div class="input-group" style="flex: 1; min-width: 250px;">
+                            <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Descuento</h3>
+                            <div class="input-group">
+                                <label>Fecha de Descuento:</label>
+                                <input type="date" id="desc-fecha-descuento" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Tasa de Descuento (%):</label>
+                                <input type="number" id="desc-tasa-descuento" step="0.01" placeholder="Ej: 40" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Base de Días:</label>
+                                <select id="desc-base-dias">
+                                    <option value="360">Comercial (360 días)</option>
+                                    <option value="365">Racional (365 días)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-calcular" onclick="simularDescuento()">Calcular Descuento</button>
+                </form>
+                <div id="resultado-descuento" class="resultado-box hidden"></div>
             </section>
         </main>
     </div>
