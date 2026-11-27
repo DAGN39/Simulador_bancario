@@ -35,22 +35,23 @@
 <li><b>Vencida / anticipada:</b> el interés se cobra al final del periodo (vencida) o al comienzo (anticipada).</li></ul>
 <p>Siempre se muestra también la tasa efectiva anual (EA) equivalente, para comparar.</p></details>
                 <form id="form-tasas">
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 250px;">
-                            <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Tasa Origen</h3>
+                    <p class="guia-orden"><b>Cómo se llena:</b> primero la tarjeta <b>①</b> (la tasa que ya tienes), de arriba hacia abajo (1.1 → 1.4). Después la tarjeta <b>②</b> (la tasa a la que quieres convertirla), también de arriba hacia abajo (2.1 → 2.3). Debajo verás un resumen de lo que vas a convertir.</p>
+                    <div class="paso-grid">
+                        <div class="paso-card">
+                            <h3><span class="paso-num">1</span> Tasa que tengo (origen)</h3>
                             <div class="input-group">
-                                <label>Valor (%):</label>
+                                <label><span class="n">1.1</span> Valor de la tasa (%):</label>
                                 <input type="number" id="tasas-origen-valor" min="0.0001" step="0.0001" placeholder="Ej: 24" required>
                             </div>
                             <div class="input-group">
-                                <label>Tipo:</label>
+                                <label><span class="n">1.2</span> Tipo de tasa:</label>
                                 <select id="tasas-origen-tipo">
                                     <option value="efectiva">Efectiva</option>
                                     <option value="nominal">Nominal</option>
                                 </select>
                             </div>
                             <div class="input-group">
-                                <label>Periodo / Capitalización:</label>
+                                <label><span class="n">1.3</span> Periodo / capitalización:</label>
                                 <select id="tasas-origen-periodo">
                                     <option value="1">Anual</option>
                                     <option value="2">Semestral</option>
@@ -60,7 +61,7 @@
                                 </select>
                             </div>
                             <div class="input-group">
-                                <label>Modalidad:</label>
+                                <label><span class="n">1.4</span> Modalidad:</label>
                                 <select id="tasas-origen-modalidad">
                                     <option value="vencida">Vencida</option>
                                     <option value="anticipada">Anticipada</option>
@@ -68,17 +69,19 @@
                             </div>
                         </div>
 
-                        <div style="flex: 1; min-width: 250px;">
-                            <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Tasa Destino</h3>
+                        <div class="paso-flecha" aria-hidden="true">➜</div>
+
+                        <div class="paso-card">
+                            <h3><span class="paso-num">2</span> Tasa a la que quiero convertir (destino)</h3>
                             <div class="input-group">
-                                <label>Tipo a calcular:</label>
+                                <label><span class="n">2.1</span> Tipo de tasa que quiero:</label>
                                 <select id="tasas-destino-tipo">
                                     <option value="efectiva">Efectiva</option>
                                     <option value="nominal">Nominal</option>
                                 </select>
                             </div>
                             <div class="input-group">
-                                <label>Periodo / Capitalización:</label>
+                                <label><span class="n">2.2</span> Periodo / capitalización:</label>
                                 <select id="tasas-destino-periodo">
                                     <option value="1">Anual</option>
                                     <option value="2">Semestral</option>
@@ -88,7 +91,7 @@
                                 </select>
                             </div>
                             <div class="input-group">
-                                <label>Modalidad:</label>
+                                <label><span class="n">2.3</span> Modalidad:</label>
                                 <select id="tasas-destino-modalidad">
                                     <option value="vencida">Vencida</option>
                                     <option value="anticipada">Anticipada</option>
@@ -96,6 +99,7 @@
                             </div>
                         </div>
                     </div>
+                    <div id="tasas-vista-previa" class="vista-previa"></div>
                     <button type="button" class="btn-calcular" onclick="simularTasa()" style="margin-top: 1.5rem;">Convertir Tasa</button>
                 </form>
                 <div id="resultado-tasas" class="resultado-box hidden"></div>
@@ -539,39 +543,42 @@
 <ul><li><b>Fecha de descuento:</b> el día en que se vende el documento; debe estar entre la emisión y el vencimiento.</li>
 <li><b>Valor de la transacción:</b> lo que realmente recibes hoy.</li></ul></details>
                 <form id="form-descuento">
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <div class="input-group" style="flex: 1; min-width: 250px;">
-                            <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Documento Original</h3>
+                    <p class="guia-orden"><b>Cómo se llena:</b> primero la tarjeta <b>①</b> (los datos del documento), de arriba hacia abajo (1.1 → 1.4). Después la tarjeta <b>②</b> (los datos del descuento), también de arriba hacia abajo (2.1 → 2.3).</p>
+                    <div class="paso-grid">
+                        <div class="paso-card">
+                            <h3><span class="paso-num">1</span> Documento original</h3>
                             <div class="input-group">
-                                <label>Valor Inicial ($):</label>
+                                <label><span class="n">1.1</span> Valor inicial ($):</label>
                                 <input type="number" id="desc-valor-inicial" min="0.01" placeholder="Ej: 70000" required>
                             </div>
                             <div class="input-group">
-                                <label>Fecha de Emisión (Inicio):</label>
+                                <label><span class="n">1.2</span> Fecha de emisión (inicio):</label>
                                 <input type="date" id="desc-fecha-inicio" required>
                             </div>
                             <div class="input-group">
-                                <label>Plazo (Días):</label>
+                                <label><span class="n">1.3</span> Plazo (días):</label>
                                 <input type="number" id="desc-plazo-dias" min="1" placeholder="Ej: 325" required>
                             </div>
                             <div class="input-group">
-                                <label>Tasa de Interés (%):</label>
+                                <label><span class="n">1.4</span> Tasa de interés del documento (%):</label>
                                 <input type="number" id="desc-tasa-interes" min="0.0001" step="0.01" placeholder="Ej: 32" required>
                             </div>
                         </div>
 
-                        <div class="input-group" style="flex: 1; min-width: 250px;">
-                            <h3 style="color: var(--color-4); margin-bottom: 1rem; font-size: 1.1rem;">Descuento</h3>
+                        <div class="paso-flecha" aria-hidden="true">➜</div>
+
+                        <div class="paso-card">
+                            <h3><span class="paso-num">2</span> Descuento (venta al banco)</h3>
                             <div class="input-group">
-                                <label>Fecha de Descuento:</label>
+                                <label><span class="n">2.1</span> Fecha de descuento:</label>
                                 <input type="date" id="desc-fecha-descuento" required>
                             </div>
                             <div class="input-group">
-                                <label>Tasa de Descuento (%):</label>
+                                <label><span class="n">2.2</span> Tasa de descuento (%):</label>
                                 <input type="number" id="desc-tasa-descuento" min="0.0001" max="100" step="0.01" placeholder="Ej: 40" required>
                             </div>
                             <div class="input-group">
-                                <label>Base de Días:</label>
+                                <label><span class="n">2.3</span> Base de días:</label>
                                 <select id="desc-base-dias">
                                     <option value="360">Comercial (360 días)</option>
                                     <option value="365">Racional (365 días)</option>

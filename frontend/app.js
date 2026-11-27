@@ -342,3 +342,96 @@ function simularDescuento() {
             <small>Días exactos descontados: ${data.dias_descuento} días</small>`);
     });
 }
+
+// =====================================================
+//  EJEMPLOS (un botón en cada pestaña) Y RESUMEN DE LA CONVERSIÓN
+// =====================================================
+function fijar(valores) {
+    Object.entries(valores).forEach(([id, v]) => { const e = $(id); if (e) e.value = v; });
+}
+
+const EJEMPLOS = {
+    tasas: {
+        texto: 'Convierte una tasa de 24,96 % efectiva anual vencida a efectiva mensual vencida. Resultado esperado: 1,8742 % EMV.',
+        cargar() {
+            fijar({ 'tasas-origen-valor': 24.96, 'tasas-origen-tipo': 'efectiva', 'tasas-origen-periodo': '1', 'tasas-origen-modalidad': 'vencida',
+                    'tasas-destino-tipo': 'efectiva', 'tasas-destino-periodo': '12', 'tasas-destino-modalidad': 'vencida' });
+            vistaPreviaTasas(); simularTasa();
+        }
+    },
+    simple: {
+        texto: 'Un capital de $1.000.000 al 24 % anual durante 2 años: ¿cuál es el valor futuro? Resultado esperado: $1.480.000,00.',
+        cargar() {
+            fijar({ 'simple-calcular': 'vf', 'simple-vp': 1000000, 'simple-tasa': 24, 'simple-tasa-unidad': '1', 'simple-tiempo': 2, 'simple-tiempo-unidad': '1' });
+            toggleSimpleFields(); simularSimple();
+        }
+    },
+    compuesto: {
+        texto: '$1.000.000 al 24 % nominal mensual vencida durante 1 año: ¿cuál es el valor futuro? Resultado esperado: $1.268.241,79.',
+        cargar() {
+            fijar({ 'comp-calcular': 'vf', 'comp-monto': 1000000, 'comp-tasa': 24, 'comp-tipo': 'nominal', 'comp-periodo': '12',
+                    'comp-modalidad': 'vencida', 'comp-tiempo': 1, 'comp-tiempo-unidad': '1' });
+            toggleCompuestoFields(); simularCompuesto();
+        }
+    },
+    prestamos: {
+        texto: 'Crédito de $200.000.000 al 24,96 % efectiva anual en 24 cuotas mensuales, con un abono de $38.000.000 en la cuota 8 que reduce el tiempo. Resultado esperado: cuota $10.424.140,47 y 20 pagos (sin el abono serían 24).',
+        cargar() {
+            fijar({ 'pres-monto': 200000000, 'pres-tasa': 24.96, 'pres-tipo': 'efectiva', 'pres-periodo': '1', 'pres-modalidad': 'vencida',
+                    'pres-frecuencia': '12', 'pres-plazo': 24, 'pres-tipo-pago': 'vencido', 'pres-gracia': 0, 'pres-tipo-gracia': 'parcial',
+                    'pres-sistema': 'fija', 'pres-edad': '', 'pres-plazo-minimo': '', 'pres-modo-abono': 'plazo' });
+            toggleGracia();
+            $('abonos-lista').innerHTML = '';
+            agregarAbono();
+            const f = document.querySelector('#abonos-lista .abono-fila');
+            f.querySelector('.abono-cuota').value = 8;
+            f.querySelector('.abono-valor').value = 38000000;
+            simularPrestamo();
+        }
+    },
+    anualidades: {
+        texto: 'Arriendo de $1.000.000 pagado al inicio de cada mes durante 12 meses e invertido al 24 % nominal mensual vencida: ¿cuánto acumulas? (valor futuro, anualidad anticipada). Resultado esperado: $13.680.331,52.',
+        cargar() {
+            fijar({ 'anu-calcular': 'vf', 'anu-pago': 1000000, 'anu-n': 12, 'anu-frecuencia': '12', 'anu-tipo-pago': 'anticipada',
+                    'anu-tasa': 24, 'anu-tipo': 'nominal', 'anu-periodo': '12', 'anu-modalidad': 'vencida', 'anu-diferimiento': 0 });
+            toggleAnualidadFields(); simularAnualidad();
+        }
+    },
+    descuento: {
+        texto: 'Documento de $1.000.000 emitido el 2026-01-01 a 90 días con 24 % de interés, vendido al banco el 2026-02-01 con descuento del 30 % (base 360). Resultado esperado: valor de la transacción $1.007.883,33.',
+        cargar() {
+            fijar({ 'desc-valor-inicial': 1000000, 'desc-fecha-inicio': '2026-01-01', 'desc-plazo-dias': 90, 'desc-tasa-interes': 24,
+                    'desc-fecha-descuento': '2026-02-01', 'desc-tasa-descuento': 30, 'desc-base-dias': '360' });
+            simularDescuento();
+        }
+    }
+};
+
+function cargarEjemplo(modulo) { EJEMPLOS[modulo].cargar(); }
+
+// Resumen en una frase de lo que se va a convertir (se actualiza al llenar el formulario)
+function textoTasa(prefijo, conValor) {
+    const sel = id => { const s = $(id); return s.options[s.selectedIndex].text.toLowerCase(); };
+    const valor = conValor ? ($(prefijo + '-valor').value.trim() || '…') + ' % ' : '';
+    return `<b>${valor}${sel(prefijo + '-tipo')} ${sel(prefijo + '-periodo')} ${sel(prefijo + '-modalidad')}</b>`;
+}
+
+function vistaPreviaTasas() {
+    $('tasas-vista-previa').innerHTML = `Vas a convertir: ${textoTasa('tasas-origen', true)} &nbsp;➜&nbsp; ${textoTasa('tasas-destino', false)}`;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    Object.entries(EJEMPLOS).forEach(([modulo, ej]) => {
+        const detalles = $(modulo).querySelector('details.ayuda-modulo');
+        const barra = document.createElement('div');
+        barra.className = 'barra-ejemplo';
+        barra.innerHTML = `<button type="button" class="btn-secundario" onclick="cargarEjemplo('${modulo}')">▶ Cargar un ejemplo</button>
+                           <span class="ayuda">${ej.texto}</span>`;
+        detalles.after(barra);
+    });
+    // Para la pestaña de tasas, además se va actualizando el resumen al escribir
+    const tasasForm = $('form-tasas');
+    tasasForm.addEventListener('input', vistaPreviaTasas);
+    tasasForm.addEventListener('change', vistaPreviaTasas);
+    vistaPreviaTasas();
+});
