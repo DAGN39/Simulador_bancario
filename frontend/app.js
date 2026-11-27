@@ -276,7 +276,7 @@ function simularPrestamo() {
             tr.style.borderBottom = '1px solid #eee';
             tr.innerHTML = `
                 <td style="text-align: center;">${f.periodo}${f.nota ? `<span class="nota-fila">${f.nota}</span>` : ''}</td>
-                <td>${dinero(f.cuota)}</td>
+                <td>${dinero(f.cuota + f.abono_extra)}</td>
                 <td style="color: #d32f2f;">${dinero(f.interes)}</td>
                 <td style="color: #1976d2;">${dinero(f.abono_capital)}</td>
                 <td style="color: #1976d2;">${f.abono_extra > 0 ? dinero(f.abono_extra) : '—'}</td>
