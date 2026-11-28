@@ -20,7 +20,7 @@
             <button class="tab-btn active" data-target="tasas">Conversión de Tasas</button>
             <button class="tab-btn" data-target="simple">Interés Simple</button>
             <button class="tab-btn" data-target="compuesto">Interés Compuesto</button>
-            <button class="tab-btn" data-target="prestamos">Simulador de Préstamos</button>
+            <button class="tab-btn" data-target="prestamos">Amortización</button>
             <button class="tab-btn" data-target="anualidades">Anualidades</button>
             <button class="tab-btn" data-target="descuento">Descuento Bancario</button>
             <button class="tab-btn" data-target="ayuda">Ayuda</button>
@@ -286,7 +286,7 @@
 
             <!-- MÓDULO 4: PRÉSTAMOS -->
             <section id="prestamos" class="tab-content">
-                <h2>Simulación de Crédito</h2>
+                <h2>Simulación de Crédito: Amortización</h2>
                 <details class="ayuda-modulo"><summary>¿Cómo funciona este módulo?</summary>
                 <p>Genera la tabla de amortización de un crédito. Llena los datos básicos y, si quieres, activa las opciones avanzadas.</p>
                 <ul>
@@ -295,7 +295,8 @@
                     <li><b>Pago de las cuotas:</b> <i>vencido</i> = pagas al final de cada periodo. <i>Anticipado</i> = pagas al inicio; el primer pago es en el periodo 0 y no genera interés, y el saldo baja desde el comienzo.</li>
                     <li><b>Sistema de cuotas:</b> <i>fija</i> = todas las cuotas son iguales (anualidad). <i>Variable</i> = en cada cuota amortizas el mismo capital (deuda ÷ número de cuotas) y pagas los intereses sobre el saldo, así que la primera cuota es la más alta y la cuota va bajando.</li>
                     <li><b>Periodo de gracia:</b> los primeros periodos en los que no amortizas capital. <i>Solo intereses</i>: pagas únicamente el interés. <i>Interés capitalizado</i>: no pagas nada y el interés se suma a la deuda. Con pago anticipado solo se puede capitalizar.</li>
-                    <li><b>Seguro (opcional):</b> porcentaje adicional por periodo que el banco cobra sobre el saldo (seguro de vida u otro). Se suma al pago de cada periodo, se muestra en su propia columna y no amortiza la deuda.</li>
+                    <li><b>Seguro:</b> por defecto 0,05 % por periodo de pago sobre el saldo (seguro de vida u otro). Puedes cambiar el porcentaje o desmarcar la casilla para quitarlo. Se suma al pago de cada periodo, se muestra en su propia columna y no amortiza la deuda.</li>
+                    <li><b>Frecuencia de pago:</b> al cambiarla, el simulador convierte solo la tasa a su equivalente en el nuevo periodo (misma tasa efectiva anual) y ajusta el número de cuotas y los periodos de gracia para que el plazo total en años se mantenga (24 cuotas mensuales = 8 trimestrales = 2 anuales).</li>
                     <li><b>Edad y plazo mínimo (opcional):</b> la edad del titular debe ser de 18 años o más y se muestra la edad al terminar el crédito. El plazo mínimo rechaza créditos más cortos que lo que exige el producto (por ejemplo, 48 meses).</li>
                     <li><b>Abono extra a capital:</b> un pago adicional en una cuota. <i>Reducir tiempo</i>: sigues pagando la misma cuota pero terminas antes. <i>Reducir cuota</i>: mantienes el plazo y la cuota baja.</li>
                 </ul></details>
@@ -331,6 +332,7 @@
                                 <option value="2">Semestral</option>
                                 <option value="3">Cuatrimestral</option>
                                 <option value="4">Trimestral</option>
+                                <option value="6">Bimestral</option>
                                 <option value="12">Mensual</option>
                             </select>
                         </div>
@@ -346,7 +348,7 @@
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Frecuencia de Pago:</label>
-                            <select id="pres-frecuencia">
+                            <select id="pres-frecuencia" onchange="cambiarFrecuencia()">
                                 <option value="12">Mensual</option>
                                 <option value="6">Bimestral</option>
                                 <option value="4">Trimestral</option>
@@ -358,7 +360,8 @@
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Número de Cuotas (Plazo):</label>
                             <input type="number" id="pres-plazo" min="1" max="600" step="1" placeholder="Ej: 24" required>
-                            <span class="ayuda">Entero entre 1 y 600. Incluye los periodos de gracia.</span>
+                            <span class="ayuda">Entero entre 1 y 600. Incluye los periodos de gracia. Se ajusta solo al cambiar la frecuencia.</span>
+                            <span class="ayuda" id="pres-aviso-frecuencia"></span>
                         </div>
                         <div class="input-group" style="flex: 1; min-width: 200px;">
                             <label>Pago de las cuotas:</label>
@@ -394,11 +397,14 @@
                     </div>
 
                     <div class="bloque-opcional">
-                        <h3>Seguro (opcional)</h3>
+                        <h3>Seguro</h3>
                         <div class="input-group">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400;">
+                                <input type="checkbox" id="pres-seguro-activo" checked onchange="toggleSeguro()" style="width: auto;"> Incluir seguro
+                            </label>
                             <label>Seguro (% por periodo de pago):</label>
-                            <input type="number" id="pres-seguro" min="0" max="10" step="any" placeholder="Ej: 0.05">
-                            <span class="ayuda">Seguro de vida u otro que cobra el banco: un porcentaje adicional sobre el saldo, que se suma a cada pago. Máximo 10 %. Vacío = sin seguro. No reduce la deuda.</span>
+                            <input type="number" id="pres-seguro" min="0" max="10" step="any" value="0.05" placeholder="Ej: 0.05">
+                            <span class="ayuda">Por defecto 0,05 %. Puedes cambiarlo o desmarcar la casilla para quitarlo. Es un porcentaje sobre el saldo que se suma a cada pago (máximo 10 %). No reduce la deuda.</span>
                         </div>
                     </div>
 

@@ -121,7 +121,63 @@ function toggleGracia() {
     if (anticipado) $('pres-tipo-gracia').value = 'total';
 }
 
+// Seguro: la casilla lo activa o lo quita (por defecto 0,05 %)
+function toggleSeguro() {
+    $('pres-seguro').disabled = !$('pres-seguro-activo').checked;
+}
+
+// Convierte una tasa (%) a la tasa equivalente (misma EA) expresada en otro periodo
+function convertirTasa(valor, tipo, periodo, modalidad, nuevoPeriodo) {
+    const periodica = tipo === 'nominal' ? valor / 100 / periodo : valor / 100;
+    if (modalidad === 'anticipada' && periodica >= 1) return null;
+    const vencida = modalidad === 'anticipada' ? periodica / (1 - periodica) : periodica;
+    const ea = Math.pow(1 + vencida, periodo) - 1;
+    const nuevaVencida = Math.pow(1 + ea, 1 / nuevoPeriodo) - 1;
+    const nuevaPeriodica = modalidad === 'anticipada' ? nuevaVencida / (1 + nuevaVencida) : nuevaVencida;
+    return (tipo === 'nominal' ? nuevaPeriodica * nuevoPeriodo : nuevaPeriodica) * 100;
+}
+
+const NOMBRE_FREC = { '12': 'mensuales', '6': 'bimestrales', '4': 'trimestrales', '3': 'cuatrimestrales', '2': 'semestrales', '1': 'anuales' };
+
+// Al cambiar la frecuencia de pago se ajustan la tasa, el número de cuotas y la gracia
+function cambiarFrecuencia() {
+    const sel = $('pres-frecuencia');
+    const vieja = Number(sel.dataset.prev || sel.value), nueva = Number(sel.value);
+    sel.dataset.prev = sel.value;
+    const aviso = $('pres-aviso-frecuencia');
+    aviso.textContent = '';
+    if (vieja === nueva) return;
+    const msgs = [];
+
+    // Plazo: se mantiene el mismo tiempo total (cuotas x nueva / vieja)
+    const plazoTxt = $('pres-plazo').value.trim(), plazo = Number(plazoTxt);
+    if (plazoTxt !== '' && isFinite(plazo) && plazo > 0) {
+        const exacto = plazo * nueva / vieja;
+        const nuevo = Math.max(1, Math.min(600, Math.round(exacto)));
+        $('pres-plazo').value = nuevo;
+        msgs.push(`Plazo: ${nuevo} cuotas ${NOMBRE_FREC[nueva]}`);
+        if (Math.abs(exacto - nuevo) > 1e-9) msgs.push(`se redondeó desde ${fmt(exacto, 2)} para que sea entero`);
+    }
+    const gracia = Number($('pres-gracia').value);
+    if (gracia > 0) $('pres-gracia').value = Math.max(0, Math.round(gracia * nueva / vieja));
+
+    // Tasa: misma tasa efectiva anual, expresada en el periodo de la nueva frecuencia
+    const tasaTxt = $('pres-tasa').value.trim(), tasa = Number(tasaTxt);
+    if (tasaTxt !== '' && isFinite(tasa) && tasa > 0) {
+        const nuevaTasa = convertirTasa(tasa, $('pres-tipo').value, Number($('pres-periodo').value), $('pres-modalidad').value, nueva);
+        if (nuevaTasa !== null) {
+            const redondeada = Number(nuevaTasa.toFixed(6));
+            $('pres-tasa').value = redondeada;
+            $('pres-periodo').value = String(nueva);
+            msgs.push(`Tasa convertida a ${fmt(redondeada, 4)} % (periodo ${NOMBRE_FREC[nueva].replace(/es$|s$/, '')}), equivalente a la anterior`);
+        }
+    }
+    aviso.textContent = msgs.length ? msgs.join('. ') + '.' : '';
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+    $('pres-frecuencia').dataset.prev = $('pres-frecuencia').value;
+    toggleSeguro();
     toggleSimpleFields();
     toggleCompuestoFields();
     toggleAnualidadFields();
@@ -240,7 +296,7 @@ function simularPrestamo() {
         if (porcentajeTexto !== '') leerNumero('pres-porcentaje', '% a financiar', { max: 100 });
         const tasa = leerNumero('pres-tasa', 'Tasa de interés', { max: 1000 });
         const plazo = leerNumero('pres-plazo', 'Número de cuotas', { entero: true, max: 600 });
-        const seguroTexto = $('pres-seguro').value.trim();
+        const seguroTexto = $('pres-seguro-activo').checked ? $('pres-seguro').value.trim() : '';
         if (seguroTexto !== '') leerNumero('pres-seguro', 'Seguro (% por periodo)', { max: 10, permitirCero: true });
         const gracia = leerNumero('pres-gracia', 'Periodos de gracia', { entero: true, permitirCero: true });
         if (gracia >= plazo) throw new Error('Los periodos de gracia deben ser menos que el número de cuotas.');
@@ -399,7 +455,9 @@ const EJEMPLOS = {
         cargar() {
             fijar({ 'pres-monto': 200000000, 'pres-porcentaje': '', 'pres-tasa': 24.96, 'pres-tipo': 'efectiva', 'pres-periodo': '1', 'pres-modalidad': 'vencida',
                     'pres-frecuencia': '12', 'pres-plazo': 24, 'pres-tipo-pago': 'vencido', 'pres-gracia': 0, 'pres-tipo-gracia': 'parcial',
-                    'pres-sistema': 'fija', 'pres-seguro': '', 'pres-edad': '', 'pres-plazo-minimo': '', 'pres-modo-abono': 'plazo' });
+                    'pres-sistema': 'fija', 'pres-seguro': 0.05, 'pres-edad': '', 'pres-plazo-minimo': '', 'pres-modo-abono': 'plazo' });
+            $('pres-seguro-activo').checked = true; toggleSeguro();
+            $('pres-frecuencia').dataset.prev = '12'; $('pres-aviso-frecuencia').textContent = '';
             toggleGracia();
             $('abonos-lista').innerHTML = '';
             agregarAbono();
@@ -446,6 +504,9 @@ function borrarDatos(modulo) {
         $('abonos-lista').innerHTML = '';     // quita todas las filas de abonos
         $('pres-resumen').innerHTML = '';
         $('tbody-amortizacion').innerHTML = '';
+        $('pres-frecuencia').dataset.prev = $('pres-frecuencia').value;
+        $('pres-aviso-frecuencia').textContent = '';
+        toggleSeguro();
         toggleGracia();
     }
 }
