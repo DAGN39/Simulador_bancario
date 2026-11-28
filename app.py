@@ -15,7 +15,7 @@ CORS(app)
 
 # Cuántas unidades de cada tipo caben en un año
 UNIDADES = {'1': 1, '2': 2, '3': 3, '4': 4, '12': 12, '360': 360, '365': 365}
-PERIODOS_TASA = (1, 2, 3, 4, 12)
+PERIODOS_TASA = (1, 2, 3, 4, 6, 12)
 TIPOS_TASA = ('nominal', 'efectiva')
 MODALIDADES = ('vencida', 'anticipada')
 FRECUENCIAS_PAGO = (1, 2, 3, 4, 6, 12)
